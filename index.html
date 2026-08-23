@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ổ Bán Nước Mắm - Danh Sách Nhân Vật</title>
+    <!-- SDK Firebase CDN (Phiên bản v9 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0f0e0c; color: #e0d8cc; padding: 24px 16px; min-height: 100vh; }
@@ -27,19 +30,18 @@
         .notice-time { color: #a8a29e; font-size: 12px; }
         .notice-content { font-size: 14px; color: #f5f5f4; line-height: 1.6; }
 
-        /* Tag Filter Bar */
+        /* Filter Section */
         .filter-section { margin-bottom: 24px; background: #1c1917; padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
         .filter-title { font-size: 0.85rem; color: #a8a29e; margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .tag-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 120px; overflow-y: auto; padding-right: 4px; }
         .tag-btn { background: #292524; color: #d6d3d1; border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
         .tag-btn:hover, .tag-btn.active { background: #f59e0b; color: #000; font-weight: 700; border-color: #f59e0b; }
 
-        /* Search input */
         .search-box { margin-bottom: 16px; }
         .search-box input { width: 100%; background: #0f0e0c; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 0.9rem; outline: none; }
         .search-box input:focus { border-color: #f59e0b; }
 
-        .character-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+        .character-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
         
         .card { 
             background: #1c1917; 
@@ -85,100 +87,84 @@
             transition: opacity 0.2s, transform 0.1s; 
         }
         .btn-visit:hover { opacity: 0.92; }
-        .btn-visit:active { transform: scale(0.97); }
         
         .like-btn { 
             background: rgba(244, 63, 94, 0.1); 
             border: 1px solid rgba(244, 63, 94, 0.3); 
             color: #fb7185; 
-            padding: 8px 14px; 
+            padding: 8px 12px; 
             border-radius: 10px; 
             cursor: pointer; 
             display: flex; 
             align-items: center; 
             gap: 6px; 
             font-weight: 700; 
-            font-size: 0.9rem; 
+            font-size: 0.85rem; 
             transition: all 0.2s; 
         }
-        .like-btn:hover { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.6); transform: scale(1.05); }
-        .like-btn.liked { background: rgba(244, 63, 94, 0.3); border-color: rgba(244, 63, 94, 0.8); opacity: 0.75; cursor: default; }
+        .like-btn:hover { background: rgba(244, 63, 94, 0.2); }
+        .like-btn.liked { background: rgba(244, 63, 94, 0.3); opacity: 0.8; }
 
-        /* Carousel Navigation Buttons */
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.65);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            z-index: 10;
+        /* YouTube-style Comments Section */
+        .comments-section {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.08);
         }
-        .carousel-btn:hover { background: #f59e0b; color: black; }
+        .comments-header { font-size: 0.8rem; font-weight: 700; color: #f59e0b; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; }
+        .comments-list { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding-right: 4px; }
+        .comment-item { background: #0f0e0c; padding: 8px 10px; border-radius: 8px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.05); }
+        .comment-author { color: #f59e0b; font-weight: 700; font-size: 0.75rem; margin-bottom: 2px; }
+        .comment-text { color: #d6d3d1; line-height: 1.3; }
+        .comment-time { font-size: 0.65rem; color: #78716c; margin-top: 2px; }
+        
+        .comment-form { display: flex; gap: 6px; }
+        .comment-input { flex: 1; background: #0f0e0c; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; outline: none; }
+        .comment-btn { background: #f59e0b; color: #000; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+
+        /* Carousel Navigation */
+        .carousel-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.65); color: white; border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px; z-index: 10;
+        }
         .carousel-btn.prev { left: 8px; }
         .carousel-btn.next { right: 8px; }
-        .img-indicator {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background: rgba(0,0,0,0.7);
-            color: #f59e0b;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 12px;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            z-index: 10;
-        }
+        .img-indicator { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #f59e0b; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 12px; }
 
-        /* User Message Form */
-        .mailbox-section { margin-top: 40px; background: #1c1917; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        /* Mailbox & Admin Modals */
+        .mailbox-section { margin-top: 40px; background: #1c1917; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; }
         .mailbox-section h2 { color: #f59e0b; font-size: 1.3rem; margin-bottom: 8px; }
-        .mailbox-section p { color: #a8a29e; font-size: 0.85rem; margin-bottom: 16px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 0.8rem; color: #d6d3d1; margin-bottom: 4px; font-weight: 600; }
         .form-control { width: 100%; background: #0f0e0c; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; outline: none; }
-        .form-control:focus { border-color: #f59e0b; }
         textarea.form-control { resize: vertical; min-height: 90px; }
-        .btn-submit { background: #f59e0b; color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
-        .btn-submit:hover { opacity: 0.9; }
+        .btn-submit { background: #f59e0b; color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
-        /* Admin Trigger & Modals */
         .admin-trigger { margin-top: 20px; text-align: center; }
-        .btn-admin-open { background: transparent; color: #78716c; border: 1px dashed #78716c; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
-        .btn-admin-open:hover { color: #f59e0b; border-color: #f59e0b; }
+        .btn-admin-open { background: transparent; color: #78716c; border: 1px dashed #78716c; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
-        .modal-box { background: #1c1917; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+        .modal-box { background: #1c1917; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; padding: 24px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; }
         .modal-header h3 { color: #f59e0b; font-size: 1.3rem; }
         .close-btn { background: none; border: none; color: #a8a29e; font-size: 1.5rem; cursor: pointer; }
-        .close-btn:hover { color: #fff; }
 
-        /* Admin Tabs */
         .admin-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
         .tab-btn { background: #292524; color: #a8a29e; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
         .tab-btn.active { background: #f59e0b; color: #000; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .tag-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; max-height: 140px; overflow-y: auto; background: #0f0e0c; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 6px; }
+        .tag-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; max-height: 140px; overflow-y: auto; background: #0f0e0c; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
         .tag-checkboxes label { font-size: 0.75rem; color: #d6d3d1; display: flex; align-items: center; gap: 4px; cursor: pointer; }
 
         .msg-card { background: #0f0e0c; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .msg-head { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.8rem; }
         .msg-user { color: #f59e0b; font-weight: 700; }
         .msg-time { color: #78716c; }
-        .msg-body { font-size: 0.85rem; color: #e0d8cc; white-space: pre-wrap; line-height: 1.4; }
+        .msg-body { font-size: 0.85rem; color: #e0d8cc; white-space: pre-wrap; }
         .btn-del-msg { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; margin-top: 8px; }
 
         footer { text-align: center; margin-top: 40px; padding: 20px; font-size: 0.8rem; color: #78716c; border-top: 1px solid rgba(255, 255, 255, 0.05); }
@@ -196,9 +182,9 @@
     <div class="notice-banner" id="noticeBanner">
         <div class="notice-header">
             <span class="notice-tag">📢 Thông Báo Quan Trọng Từ Admin</span>
-            <span class="notice-time" id="noticeTime">Đăng lúc: 14:30 - 22/08/2026</span>
+            <span class="notice-time" id="noticeTime">Đang tải...</span>
         </div>
-        <div class="notice-content" id="noticeContent">Chào mừng bạn đến với Ổ Bán Nước Mắm (60°N Đạm)! Các nhân vật sẽ được cập nhật và làm mới thường xuyên trực tiếp trên web. Mọi góp ý hoặc yêu cầu thêm nhân vật xin vui lòng gửi thư cho Admin ở cuối trang.</div>
+        <div class="notice-content" id="noticeContent">Đang kết nối cơ sở dữ liệu...</div>
     </div>
 
     <!-- Filter & Search Section -->
@@ -216,7 +202,7 @@
     <!-- User Mailbox Section -->
     <div class="mailbox-section">
         <h2>✉️ Gửi Thư Cho Admin</h2>
-        <p>Gửi góp ý, yêu cầu thêm nhân vật hoặc lời nhắn nhủ cho Admin tại đây nhé!</p>
+        <p style="color: #a8a29e; font-size: 0.85rem; margin-bottom: 16px;">Gửi góp ý, yêu cầu thêm nhân vật hoặc lời nhắn nhủ cho Admin tại đây nhé!</p>
         <form id="userMailForm" onsubmit="handleSendMail(event)">
             <div class="form-group">
                 <label>Tên / Biệt danh của bạn:</label>
@@ -230,7 +216,6 @@
         </form>
     </div>
 
-    <!-- Admin Trigger Button -->
     <div class="admin-trigger">
         <button class="btn-admin-open" onclick="openAdminModal()">🔑 Quản Trị Admin</button>
     </div>
@@ -266,9 +251,9 @@
         </div>
 
         <div class="admin-tabs">
-            <button class="tab-btn active" onclick="switchTab('tabChars')">Nhân Vật</button>
-            <button class="tab-btn" onclick="switchTab('tabNotice')">Thông Báo</button>
-            <button class="tab-btn" onclick="switchTab('tabMailbox')">Hộp Thư (<span id="unreadMailCount">0</span>)</button>
+            <button class="tab-btn active" onclick="switchTab(event, 'tabChars')">Nhân Vật</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tabNotice')">Thông Báo</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tabMailbox')">Hộp Thư (<span id="unreadMailCount">0</span>)</button>
         </div>
 
         <!-- Tab 1: Quản lý nhân vật -->
@@ -289,7 +274,7 @@
                     <input type="text" id="charDesc" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Link ảnh (Mỗi link một dòng hoặc cách nhau bằng dấu phẩy):</label>
+                    <label>Link ảnh (Mỗi link một dòng):</label>
                     <textarea id="charImages" class="form-control" required placeholder="https://link-anh-1.jpg&#10;https://link-anh-2.jpg"></textarea>
                 </div>
                 <div class="form-group">
@@ -297,15 +282,15 @@
                     <input type="url" id="charRedirect" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Chọn Tag / Thể loại có sẵn:</label>
+                    <label>Chọn Tag có sẵn:</label>
                     <div class="tag-checkboxes" id="tagCheckboxContainer"></div>
                 </div>
                 <div class="form-group">
-                    <label>Tự nhập thêm Tag (cách nhau bằng dấu phẩy):</label>
+                    <label>Tự nhập thêm Tag (cách nhau bởi dấu phẩy):</label>
                     <input type="text" id="customTagsInput" class="form-control" placeholder="Ví dụ: Huyền huyễn, Sủng ngọt...">
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 16px;">
-                    <button type="submit" class="btn-submit" style="flex: 1;">Lưu Nhân Vật</button>
+                    <button type="submit" class="btn-submit" style="flex: 1;">Lưu Lên Server</button>
                     <button type="button" class="btn-submit" onclick="resetCharForm()" style="background: #44403c; color: #fff;">Reset Form</button>
                 </div>
             </form>
@@ -323,13 +308,13 @@
                     <label>Nội dung thông báo mới:</label>
                     <textarea id="noticeInput" class="form-control" style="min-height: 120px;" required></textarea>
                 </div>
-                <button type="submit" class="btn-submit">Đăng Thông Báo Mới 📢</button>
+                <button type="submit" class="btn-submit">Đăng Thông Báo Ngay 📢</button>
             </form>
         </div>
 
         <!-- Tab 3: Hộp thư admin -->
         <div id="tabMailbox" class="tab-content">
-            <h4 style="color: #f59e0b; margin-bottom: 12px;">Danh Sách Thư Của User Send</h4>
+            <h4 style="color: #f59e0b; margin-bottom: 12px;">Danh Sách Thư Của Người Dùng Gửi</h4>
             <div id="adminMailList"></div>
         </div>
 
@@ -337,9 +322,25 @@
 </div>
 
 <script>
-    // System Data & Configuration
-    const ADMIN_PASS_HASH = "c82f0852613e36bdc9ec80fe5de10c4f295208544ed48031ebc5dc8418178a79"; // dmytbldeochovideotlenxuhuongtcaylamyoutubeadmm@221
+    // CẤU HÌNH FIREBASE REALTIME DATABASE ĐÃ ĐƯỢC TỰ ĐỘNG ĐIỀN
+    const firebaseConfig = {
+        apiKey: "AIzaSyBnInUMxNdoQrzqiJcrqGxMtIBp7xTetVc", 
+        authDomain: "obannuocmam.firebaseapp.com",
+        databaseURL: "https://obannuocmam-default-rtdb.firebaseio.com",
+        projectId: "obannuocmam",
+        storageBucket: "obannuocmam.firebasestorage.app",
+        messagingSenderId: "187965096366",
+        appId: "1:187965096366:web:0ad7289f20369bce05483",
+        measurementId: "G-F4ME92E9B8"
+    };
 
+    // Khởi tạo Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
+    const ADMIN_PASS_HASH = "c82f0852613e36bdc9ec80fe5de10c4f295208544ed48031ebc5dc8418178a79"; 
     const PRESET_TAGS = [
         "BL", "GL", "Anygender", "Thanh xuân vườn trường", "Cổ trang", "Cổ xưa", "Hiện đại", 
         "Ma cà rồng", "18+", "NSFW", "Greenflag", "Redflag", "Ngược tâm", "SE", "HE", "Ngọt", 
@@ -348,48 +349,13 @@
         "Loạn luân", "Ngụy loạn luân", "NP", "Harem", "Niên hạ"
     ];
 
-    const defaultCharacters = [
-        {
-            "id": "kinh-xuyen",
-            "name": "Kình Xuyên",
-            "creator": "Admin",
-            "tags": ["Thanh xuân vườn trường", "Hiện đại", "Greenflag"],
-            "desc": "”Ban đầu cứ tưởng trai hư, ai ngờ là thủ khoa trường mình.”",
-            "avatar": "https://i.ibb.co/YBtjfjF3/IMG-20260822-184445.jpg",
-            "images": ["https://i.ibb.co/YBtjfjF3/IMG-20260822-184445.jpg"],
-            "redirectUrl": "https://aistudio.google.com/app/prompts?state=%7B%22ids%22:%5B%221C031lN-dga2kcD4nqKs1UvTwqQL2DJtQ%22%5D,%22action%22:%22open%22,%22userId%22:%22110303689433524750453%22,%22resourceKeys%22:%7B%7D%7D&usp=sharing"
-        },
-        {
-            "id": "to-so-yen",
-            "name": "Tô Sở Yên",
-            "creator": "Admin",
-            "tags": ["Thanh xuân vườn trường", "Hiện đại", "Ngọt"],
-            "desc": "”...Chị có thể đóng giả làm chị gái em không?”",
-            "avatar": "https://i.ibb.co/WW8CdQ0k/f14276cfda357e78ecf5cd12e4adad0b-1.jpg",
-            "images": [
-                "https://i.ibb.co/WW8CdQ0k/f14276cfda357e78ecf5cd12e4adad0b-1.jpg",
-                "https://i.ibb.co/p6V085Hf/2056af053e7ef64528ce75db3a5dfe60.jpg",
-                "https://i.ibb.co/MD2gQPTz/0ea3cd1dcb87b08f67d126019f6452bd.jpg",
-                "https://i.ibb.co/ks1BJbft/10d03cf32f611e7e5b251d4d099cc9b7.jpg",
-                "https://i.ibb.co/gZ06CSnX/75044e1e5f867daba212284b7e00a08a.jpg",
-                "https://i.ibb.co/k635psqp/2a6fb4d5e05e6d9ffabe1e8a4e1903b0-1.jpg"
-            ],
-            "redirectUrl": "https://aistudio.google.com/app/prompts?state=%7B%22ids%22:%5B%221QPUgOCam-pShcWCJ8NmoeaUqtZeAR-QX%22%5D,%22action%22:%22open%22,%22userId%22:%22110303689433524750453%22,%22resourceKeys%22:%7B%7D%7D&usp=sharing"
-        }
-    ];
-
-    // Local State Initialization
-    let characterData = JSON.parse(localStorage.getItem('nuocmam_characters')) || defaultCharacters;
-    let noticeData = JSON.parse(localStorage.getItem('nuocmam_notice')) || {
-        content: "Chào mừng bạn đến với Ổ Bán Nước Mắm (60°N Đạm)! Các nhân vật sẽ được cập nhật và làm mới thường xuyên trực tiếp trên web. Mọi góp ý hoặc yêu cầu thêm nhân vật xin vui lòng gửi thư cho Admin ở cuối trang.",
-        time: "Đăng lúc: 14:30 - 22/08/2026"
-    };
-    let userMails = JSON.parse(localStorage.getItem('nuocmam_user_mails')) || [];
+    let characterData = [];
+    let noticeData = {};
+    let userMails = {};
     const likedChars = JSON.parse(localStorage.getItem('nuocmam_user_liked_chars') || '{}');
     const imageIndices = {};
     let selectedTag = "";
 
-    // Helper SHA-256 Hash Function
     async function sha256(str) {
         const encoder = new TextEncoder();
         const data = encoder.encode(str);
@@ -397,12 +363,40 @@
         return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // Render Tag Filter Buttons
+    // Lắng nghe dữ liệu Thời Gian Thực (Realtime) từ Firebase
+    function initRealtimeSync() {
+        // Đồng bộ Nhân Vật
+        db.ref('characters').on('value', (snapshot) => {
+            const data = snapshot.val();
+            characterData = data ? Object.values(data) : [];
+            renderTagFilters();
+            renderCharacters();
+            if (document.getElementById('adminPanelModal').style.display === 'flex') {
+                renderAdminCharList();
+            }
+        });
+
+        // Đồng bộ Thông báo
+        db.ref('notice').on('value', (snapshot) => {
+            noticeData = snapshot.val() || {
+                content: "Chào mừng bạn đến với Ổ Bán Nước Mắm (60°N Đạm)!",
+                time: "Hệ thống"
+            };
+            document.getElementById('noticeContent').innerText = noticeData.content;
+            document.getElementById('noticeTime').innerText = noticeData.time;
+        });
+
+        // Đồng bộ Hộp thư Admin
+        db.ref('user_mails').on('value', (snapshot) => {
+            userMails = snapshot.val() || {};
+            renderAdminMailbox();
+        });
+    }
+
+    // Lọc theo Tag
     function renderTagFilters() {
         const container = document.getElementById('tagFilterList');
         container.innerHTML = `<button class="tag-btn ${selectedTag === '' ? 'active' : ''}" onclick="filterByTag('')">Tất cả</button>`;
-        
-        // Collect all active tags from preset + existing characters
         const allTagsSet = new Set(PRESET_TAGS);
         characterData.forEach(c => (c.tags || []).forEach(t => allTagsSet.add(t)));
 
@@ -425,7 +419,7 @@
         renderCharacters();
     }
 
-    // Render Character Grid
+    // Render danh sách Nhân vật
     function renderCharacters() {
         const container = document.getElementById('characterApp');
         const searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -441,13 +435,14 @@
         });
 
         if (filteredList.length === 0) {
-            container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #a8a29e; padding: 40px;">Không tìm thấy nhân vật phù hợp.</div>`;
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #a8a29e; padding: 40px;">Chưa có nhân vật nào phù hợp.</div>`;
             return;
         }
 
         filteredList.forEach((char) => {
             const charId = String(char.id);
             const isLiked = !!likedChars[charId];
+            const likesCount = char.likes || 0;
             const imgs = (char.images && char.images.length > 0) ? char.images : [char.avatar];
             if (imageIndices[charId] === undefined) imageIndices[charId] = 0;
             const currentIdx = imageIndices[charId];
@@ -455,10 +450,21 @@
 
             const tagsHtml = (char.tags || []).map(t => `<span class="badge-tag">${t}</span>`).join('');
 
+            // Xử lý Bình luận công khai (YouTube Style)
+            const commentsObj = char.comments || {};
+            const commentsArr = Object.values(commentsObj);
+            const commentsHtml = commentsArr.map(cmt => `
+                <div class="comment-item">
+                    <div class="comment-author">${cmt.author}</div>
+                    <div class="comment-text">${cmt.text}</div>
+                    <div class="comment-time">${cmt.time}</div>
+                </div>
+            `).join('');
+
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <div class="img-container" id="img-cont-${charId}">
+                <div class="img-container">
                     <img src="${imgs[currentIdx]}" class="card-img" id="img-${charId}" alt="${char.name}" onerror="this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80'" />
                     ${hasMultiple ? `
                         <button class="carousel-btn prev" onclick="prevImg('${charId}', event)">&#10094;</button>
@@ -476,8 +482,19 @@
                     <div class="card-actions">
                         <a href="${char.redirectUrl}" target="_blank" rel="noopener noreferrer" class="btn-visit">Chọn nhân vật ↗</a>
                         <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${charId}', this)">
-                            ❤️ <span id="like-count-${charId}">${isLiked ? 'Đã tim' : 'Tim'}</span>
+                            ❤️ <span id="like-count-${charId}">${likesCount} Tim</span>
                         </button>
+                    </div>
+
+                    <!-- Khối Bình Luận Công Khai -->
+                    <div class="comments-section">
+                        <div class="comments-header">💬 Bình luận (${commentsArr.length})</div>
+                        <div class="comments-list">${commentsHtml || '<div style="font-size:0.75rem; color:#78716c">Chưa có bình luận nào. Hãy là người đầu tiên!</div>'}</div>
+                        <form class="comment-form" onsubmit="handleSendComment(event, '${charId}')">
+                            <input type="text" class="comment-input" id="cmt-user-${charId}" placeholder="Tên..." style="max-width: 70px;" required>
+                            <input type="text" class="comment-input" id="cmt-text-${charId}" placeholder="Viết bình luận..." required>
+                            <button type="submit" class="comment-btn">Gửi</button>
+                        </form>
                     </div>
                 </div>
             `;
@@ -485,7 +502,7 @@
         });
     }
 
-    // Image Carousel Handlers
+    // Chuyển ảnh
     window.prevImg = function(charId, e) {
         e.stopPropagation();
         const char = characterData.find(c => String(c.id) === String(charId));
@@ -506,26 +523,42 @@
         document.getElementById('ind-' + charId).innerText = (imageIndices[charId] + 1) + '/' + total;
     };
 
-    // Like Button Handler (1 per user)
+    // Thả tim Đồng bộ lên Server (Mỗi máy chỉ bấm tim được 1 lần)
     window.toggleLike = function(charId, btn) {
         if (likedChars[charId]) {
-            alert('Bạn đã thả tim rồi!');
+            alert('Bạn đã thả tim nhân vật này rồi!');
             return;
         }
+
+        // Tăng Like trên Firebase
+        db.ref(`characters/${charId}/likes`).transaction((currentLikes) => {
+            return (currentLikes || 0) + 1;
+        });
+
         likedChars[charId] = true;
         localStorage.setItem('nuocmam_user_liked_chars', JSON.stringify(likedChars));
         btn.classList.add('liked');
-        const countSpan = document.getElementById('like-count-' + charId);
-        if (countSpan) countSpan.innerText = 'Đã tim';
     };
 
-    // Render Notice Banner
-    function renderNotice() {
-        document.getElementById('noticeContent').innerText = noticeData.content;
-        document.getElementById('noticeTime').innerText = noticeData.time;
-    }
+    // Gửi bình luận công khai
+    window.handleSendComment = function(e, charId) {
+        e.preventDefault();
+        const author = document.getElementById(`cmt-user-${charId}`).value.trim();
+        const text = document.getElementById(`cmt-text-${charId}`).value.trim();
+        if (!author || !text) return;
 
-    // User Mail Handler
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} - ${now.getDate()}/${now.getMonth() + 1}`;
+
+        // Đẩy bình luận lên Firebase
+        db.ref(`characters/${charId}/comments`).push({
+            author, text, time: timeStr
+        });
+
+        document.getElementById(`cmt-text-${charId}`).value = '';
+    };
+
+    // Gửi thư cho Admin
     function handleSendMail(e) {
         e.preventDefault();
         const sender = document.getElementById('mailSender').value.trim();
@@ -535,14 +568,14 @@
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} - ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
 
-        userMails.unshift({ sender, content, time: timeStr });
-        localStorage.setItem('nuocmam_user_mails', JSON.stringify(userMails));
+        // Đẩy thư lên Firebase Server
+        db.ref('user_mails').push({ sender, content, time: timeStr });
 
         document.getElementById('userMailForm').reset();
-        alert('Gửi thư thành công! Cảm ơn phản hồi của bạn.');
+        alert('Thư của bạn đã gửi thành công tới Admin!');
     }
 
-    // Modal Control Functions
+    // Modal Admin
     function openAdminModal() {
         document.getElementById('adminPassInput').value = '';
         document.getElementById('passwordModal').style.display = 'flex';
@@ -566,32 +599,21 @@
         }
     }
 
-    // Admin Panel Tab Switcher
-    function switchTab(tabId) {
+    function switchTab(e, tabId) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
-        event.target.classList.add('active');
+        e.target.classList.add('active');
         document.getElementById(tabId).classList.add('active');
     }
 
-    // Load Data into Admin Panel
     function loadAdminPanelData() {
-        // Tag Checkboxes
         const tagContainer = document.getElementById('tagCheckboxContainer');
         tagContainer.innerHTML = PRESET_TAGS.map(t => `<label><input type="checkbox" value="${t}"> ${t}</label>`).join('');
-
-        // Notice Tab
-        document.getElementById('noticeInput').value = noticeData.content;
-
-        // Mailbox Tab
+        document.getElementById('noticeInput').value = noticeData.content || '';
         renderAdminMailbox();
-
-        // Character List
         renderAdminCharList();
     }
 
-    // Admin Character Management
     function renderAdminCharList() {
         const container = document.getElementById('adminCharList');
         container.innerHTML = characterData.map(c => `
@@ -609,42 +631,34 @@
 
     function handleSaveChar(e) {
         e.preventDefault();
-        const editId = document.getElementById('editCharId').value;
+        let editId = document.getElementById('editCharId').value;
+        if (!editId) editId = 'char-' + Date.now();
+
         const name = document.getElementById('charName').value.trim();
         const creator = document.getElementById('charCreator').value.trim() || 'Admin';
         const desc = document.getElementById('charDesc').value.trim();
         const redirectUrl = document.getElementById('charRedirect').value.trim();
         const rawImgs = document.getElementById('charImages').value.trim().split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
         
-        // Collect checked tags + custom tags
         const selectedPresetTags = Array.from(document.querySelectorAll('#tagCheckboxContainer input:checked')).map(cb => cb.value);
         const customTags = document.getElementById('customTagsInput').value.split(',').map(s => s.trim()).filter(Boolean);
         const tags = Array.from(new Set([...selectedPresetTags, ...customTags]));
 
-        if (editId) {
-            // Update
-            const idx = characterData.findIndex(c => String(c.id) === String(editId));
-            if (idx !== -1) {
-                characterData[idx] = { ...characterData[idx], name, creator, desc, redirectUrl, images: rawImgs, avatar: rawImgs[0] || '', tags };
-            }
-        } else {
-            // Add New
-            const newChar = {
-                id: 'char-' + Date.now(),
-                name, creator, desc, redirectUrl,
-                images: rawImgs,
-                avatar: rawImgs[0] || '',
-                tags
-            };
-            characterData.unshift(newChar);
-        }
+        const existingChar = characterData.find(c => String(c.id) === String(editId)) || {};
 
-        localStorage.setItem('nuocmam_characters', JSON.stringify(characterData));
+        // Lưu trực tiếp lên Firebase
+        db.ref(`characters/${editId}`).set({
+            id: editId,
+            name, creator, desc, redirectUrl,
+            images: rawImgs,
+            avatar: rawImgs[0] || '',
+            tags,
+            likes: existingChar.likes || 0,
+            comments: existingChar.comments || {}
+        });
+
         resetCharForm();
-        renderAdminCharList();
-        renderTagFilters();
-        renderCharacters();
-        alert('Lưu nhân vật thành công!');
+        alert('Đã cập nhật nhân vật lên Server thành công! Tất cả người dùng sẽ thấy.');
     }
 
     function editChar(id) {
@@ -659,7 +673,6 @@
         document.getElementById('charImages').value = (char.images || [char.avatar]).join('\n');
         document.getElementById('formCharTitle').innerText = 'Chỉnh Sửa Nhân Vật';
 
-        // Check checkboxes
         const currentTags = char.tags || [];
         document.querySelectorAll('#tagCheckboxContainer input').forEach(cb => {
             cb.checked = currentTags.includes(cb.value);
@@ -670,12 +683,8 @@
     }
 
     function deleteChar(id) {
-        if (!confirm('Bạn có chắc muốn xóa nhân vật này?')) return;
-        characterData = characterData.filter(c => String(c.id) !== String(id));
-        localStorage.setItem('nuocmam_characters', JSON.stringify(characterData));
-        renderAdminCharList();
-        renderTagFilters();
-        renderCharacters();
+        if (!confirm('Bạn có chắc muốn xóa nhân vật này trên toàn hệ thống?')) return;
+        db.ref(`characters/${id}`).remove();
     }
 
     function resetCharForm() {
@@ -686,7 +695,7 @@
         document.querySelectorAll('#tagCheckboxContainer input').forEach(cb => cb.checked = false);
     }
 
-    // Admin Notice Management
+    // Đăng thông báo mới lên Server
     function handleSaveNotice(e) {
         e.preventDefault();
         const content = document.getElementById('noticeInput').value.trim();
@@ -695,46 +704,43 @@
         const now = new Date();
         const timeStr = `Đăng lúc: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} - ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
 
-        noticeData = { content, time: timeStr };
-        localStorage.setItem('nuocmam_notice', JSON.stringify(noticeData));
-
-        renderNotice();
-        alert('Cập nhật thông báo thành công!');
+        db.ref('notice').set({ content, time: timeStr });
+        alert('Cập nhật thông báo trang chủ thành công!');
     }
 
-    // Admin Mailbox Management
+    // Hộp thư Admin
     function renderAdminMailbox() {
         const container = document.getElementById('adminMailList');
-        document.getElementById('unreadMailCount').innerText = userMails.length;
+        const mailKeys = Object.keys(userMails);
+        document.getElementById('unreadMailCount').innerText = mailKeys.length;
 
-        if (userMails.length === 0) {
+        if (mailKeys.length === 0) {
             container.innerHTML = `<div style="text-align: center; color: #a8a29e; padding: 20px;">Chưa có thư nào từ người dùng.</div>`;
             return;
         }
 
-        container.innerHTML = userMails.map((m, idx) => `
-            <div class="msg-card">
-                <div class="msg-head">
-                    <span class="msg-user">👤 ${m.sender}</span>
-                    <span class="msg-time">🕒 ${m.time}</span>
+        container.innerHTML = mailKeys.map(key => {
+            const m = userMails[key];
+            return `
+                <div class="msg-card">
+                    <div class="msg-head">
+                        <span class="msg-user">👤 ${m.sender}</span>
+                        <span class="msg-time">🕒 ${m.time}</span>
+                    </div>
+                    <div class="msg-body">${m.content}</div>
+                    <button class="btn-del-msg" onclick="deleteMail('${key}')">Xóa thư này</button>
                 </div>
-                <div class="msg-body">${m.content}</div>
-                <button class="btn-del-msg" onclick="deleteMail(${idx})">Xóa thư</button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    function deleteMail(idx) {
-        userMails.splice(idx, 1);
-        localStorage.setItem('nuocmam_user_mails', JSON.stringify(userMails));
-        renderAdminMailbox();
+    function deleteMail(key) {
+        db.ref(`user_mails/${key}`).remove();
     }
 
-    // App Initialization
+    // Chạy khi tải trang
     document.addEventListener('DOMContentLoaded', () => {
-        renderNotice();
-        renderTagFilters();
-        renderCharacters();
+        initRealtimeSync();
     });
 </script>
 </body>
