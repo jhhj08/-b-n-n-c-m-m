@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Ổ BÁN NƯỚC MẮM NHÀ RAU MUỐNG</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      lavender: { light: '#e9d5ff', DEFAULT: '#b57edc', glow: '#c084fc', dark: '#7e22ce' },
+      night: { bg: '#05020a', card: '#0e091b', border: '#281744', hover: '#190e30' }
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'], title: ['Cinzel', 'serif'] }
+  }}
+}
+</script>
+<style>
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body { background-color: #030107; color: #f1f5f9; user-select: none; font-size: 14px; }
+input, select, textarea { font-size: 16px !important; }
+@media (min-width: 640px) { input, select, textarea { font-size: 13px !important; } }
+#nightSkyCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 5; }
+.btn-glow-purple { box-shadow: 0 4px 18px -2px rgba(181, 126, 220, 0.5), 0 0 12px rgba(126, 34, 206, 0.45); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.btn-glow-purple:hover { box-shadow: 0 6px 25px 0 rgba(192, 132, 252, 0.75), 0 0 18px rgba(181, 126, 220, 0.65); transform: translateY(-2px); }
+.btn-glow-purple:active { transform: scale(0.96); }
+.btn-glow-subtle { box-shadow: 0 3px 14px -1px rgba(0, 0, 0, 0.8), 0 0 8px rgba(181, 126, 220, 0.3); transition: all 0.15s ease; }
+.btn-glow-subtle:hover { box-shadow: 0 4px 18px 0 rgba(181, 126, 220, 0.5); border-color: rgba(181, 126, 220, 0.7); }
+.btn-glow-subtle:active { transform: scale(0.96); }
+.text-glow { text-shadow: 0 0 18px rgba(181, 126, 220, 0.75), 0 0 35px rgba(126, 34, 206, 0.5); }
+.card-custom { box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.85), 0 0 15px -3px rgba(126, 34, 206, 0.3); transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+.card-custom:hover { transform: translateY(-3px); border-color: rgba(181, 126, 220, 0.7); box-shadow: 0 12px 35px -5px rgba(181, 126, 220, 0.4), 0 0 20px rgba(126, 34, 206, 0.45); }
+@keyframes marqueeScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+.marquee-track { display: inline-block; white-space: nowrap; animation: marqueeScroll 20s linear infinite; }
+.marquee-track:hover { animation-play-state: paused; }
+@keyframes kissHonorMarquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+.marquee-kiss-honor { display: inline-block; white-space: nowrap; animation: kissHonorMarquee 14s linear infinite; }
+@keyframes kissBounceAnim {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.3) rotate(0deg); }
+  30% { transform: translate(-50%, calc(-50% - 25px)) scale(1.3) rotate(-10deg); }
+  60% { transform: translate(-50%, calc(-50% - 50px)) scale(1) rotate(10deg); }
+  100% { opacity: 0; transform: translate(-50%, calc(-50% - 95px)) scale(1.4) rotate(0deg); }
+}
+.kiss-bubble { position: fixed; pointer-events: none; z-index: 999999; animation: kissBounceAnim 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; font-size: 24px; filter: drop-shadow(0 0 10px rgba(244, 114, 182, 0.95)); }
+.snowflake-burst { position: fixed; pointer-events: none; z-index: 999999; color: #ffffff; animation: flakeFly 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; transform: translate(-50%, -50%); text-shadow: 0 0 8px rgba(192, 132, 252, 0.9), 0 0 14px rgba(233, 213, 255, 0.8); will-change: transform, opacity; }
+@keyframes flakeFly {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5) rotate(0deg); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.2) rotate(var(--tr)); }
+}
+.touch-ripple { position: fixed; pointer-events: none; z-index: 999998; border-radius: 50%; border: 2px solid rgba(192, 132, 252, 0.85); transform: translate(-50%, -50%) scale(0.1); animation: rippleExpand 0.45s ease-out forwards; box-shadow: 0 0 16px rgba(181, 126, 220, 0.9); }
+@keyframes rippleExpand { 0% { transform: translate(-50%, -50%) scale(0.1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; } }
+.censor-spoiler { background-color: #291a45; color: transparent; filter: blur(5px); border-radius: 4px; padding: 1px 6px; cursor: pointer; transition: all 0.25s ease; user-select: none; border: 1px dashed rgba(181, 126, 220, 0.6); display: inline-block; }
+.censor-spoiler.revealed { color: #fca5a5; background-color: rgba(220, 38, 38, 0.2); filter: blur(0); user-select: text; border-color: rgba(239, 68, 68, 0.6); }
+@keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin-music { animation: spinSlow 5s linear infinite; }
+.spin-paused { animation-play-state: paused; }
+.tag-scrollbar::-webkit-scrollbar { height: 4px; }
+.tag-scrollbar::-webkit-scrollbar-thumb { background: #3b2260; border-radius: 4px; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #030107; }
+::-webkit-scrollbar-thumb { background: #3b2260; border-radius: 4px; }
+.toast-container { position: fixed; top: 80px; right: 16px; z-index: 999999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: 90vw; }
+.toast { background: rgba(14, 9, 27, 0.96); border: 1px solid rgba(181, 126, 220, 0.6); color: #f1f5f9; padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 600; box-shadow: 0 8px 25px rgba(0,0,0,0.7), 0 0 15px rgba(126, 34, 206, 0.4); backdrop-filter: blur(10px); transform: translateX(120%); animation: toastIn 0.35s ease forwards; pointer-events: auto; max-width: 320px; display: flex; align-items: center; gap: 8px; }
+.toast.toast-success { border-color: rgba(34, 197, 94, 0.6); }
+.toast.toast-error { border-color: rgba(239, 68, 68, 0.7); }
+.toast.toast-info { border-color: rgba(192, 132, 252, 0.6); }
+.toast.toast-out { animation: toastOut 0.3s ease forwards; }
+@keyframes toastIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+.neon-dialogue-bar { background: linear-gradient(90deg, rgba(30, 5, 60, 0.95), rgba(80, 20, 140, 0.95), rgba(30, 5, 60, 0.95)); border-top: 2px solid #a855f7; border-bottom: 2px solid #a855f7; box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), inset 0 0 20px rgba(168, 85, 247, 0.3); text-shadow: 0 0 10px rgba(233, 213, 255, 0.9), 0 0 20px rgba(168, 85, 247, 0.8); animation: neonPulse 2s ease-in-out infinite; }
+@keyframes neonPulse { 0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), inset 0 0 20px rgba(168, 85, 247, 0.3); } 50% { box-shadow: 0 0 35px rgba(168, 85, 247, 1), inset 0 0 30px rgba(168, 85, 247, 0.5); } }
+.dialogue-popup { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.7); z-index: 999999; width: 92vw; max-width: 640px; padding: 16px 22px; border-radius: 16px; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.dialogue-popup.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+.admin-scroll { max-height: 70vh; overflow-y: auto; }
+@media (max-width: 640px) { .admin-scroll { max-height: 65vh; } }
+.comment-item { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(181, 126, 220, 0.3); border-radius: 12px; padding: 8px 12px; }
+.chat-msg-wrapper { position: relative; }
+.chat-toolbar { position: absolute; top: -14px; right: 4px; display: flex; gap: 2px; padding: 2px 4px; background: rgba(14, 9, 27, 0.98); border: 1px solid rgba(181, 126, 220, 0.6); border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 8px rgba(126, 34, 206, 0.5); z-index: 10; opacity: 0; transform: translateY(4px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
+.chat-msg-wrapper:hover .chat-toolbar, .chat-toolbar.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+@media (max-width: 640px) { .chat-toolbar { opacity: 1; transform: translateY(0); pointer-events: auto; } }
+.chat-msg-wrapper.own .chat-toolbar { left: 4px; right: auto; }
+.reply-quote { border-left: 3px solid #b57edc; padding-left: 8px; margin-bottom: 4px; font-size: 10px; color: #c084fc; font-style: italic; background: rgba(181, 126, 220, 0.08); border-radius: 0 6px 6px 0; padding: 3px 6px 3px 8px; }
+.announce-slide-in { animation: slideInTop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes slideInTop { 0% { transform: translateY(-100%) scale(0.8); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+.rank-card { background: linear-gradient(135deg, rgba(30, 5, 60, 0.9), rgba(80, 20, 140, 0.6)); border: 1px solid rgba(181, 126, 220, 0.4); border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 15px rgba(126, 34, 206, 0.3); }
+.rank-medal { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0; }
+.rank-1 { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; box-shadow: 0 0 12px #fbbf24; }
+.rank-2 { background: linear-gradient(135deg, #cbd5e1, #94a3b8); color: #000; box-shadow: 0 0 10px #cbd5e1; }
+.rank-3 { background: linear-gradient(135deg, #b45309, #78350f); color: #fff; box-shadow: 0 0 10px #b45309; }
+.rank-other { background: rgba(255,255,255,0.1); color: #c084fc; }
+video.char-media { max-height: 440px; max-width: 100%; object-fit: contain; border-radius: 16px; background: #000; }
+.guide-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.8); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 10px rgba(0,0,0,0.7); transition: background 0.2s; }
+.guide-nav-btn:hover { background: #b57edc; }
+.dialogue-row { display: grid; grid-template-columns: 70px 1fr; gap: 6px; padding: 8px; background: rgba(80, 20, 140, 0.15); border: 1px solid rgba(181, 126, 220, 0.35); border-radius: 12px; margin-bottom: 6px; }
+.dialogue-row input { width: 100%; }
+.dialogue-row .full-row { grid-column: 1 / -1; }
+.comment-float-wrapper { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 8; border-radius: 12px; }
+.comment-float-item { position: absolute; white-space: nowrap; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: rgba(0,0,0,0.35); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); will-change: transform, opacity; letter-spacing: 0.3px; }
+.comment-float-item.drift-right { animation: commentDriftRight var(--dur, 14s) linear infinite; }
+.comment-float-item.drift-left { animation: commentDriftLeft var(--dur, 16s) linear infinite; }
+@keyframes commentDriftRight { 0% { transform: translateX(-120%) translateY(0px); opacity: 0; } 8% { opacity: 1; } 50% { transform: translateX(50%) translateY(-4px); } 92% { opacity: 1; } 100% { transform: translateX(320%) translateY(0px); opacity: 0; } }
+@keyframes commentDriftLeft { 0% { transform: translateX(320%) translateY(0px); opacity: 0; } 8% { opacity: 1; } 50% { transform: translateX(50%) translateY(4px); } 92% { opacity: 1; } 100% { transform: translateX(-120%) translateY(0px); opacity: 0; } }
+.comment-float-hidden { display: none !important; }
+.blackflag-warning { background: linear-gradient(135deg, rgba(120, 0, 0, 0.95), rgba(50, 0, 0, 0.95)); border: 2px solid #dc2626; box-shadow: 0 0 25px rgba(220, 38, 38, 0.8), inset 0 0 20px rgba(220, 38, 38, 0.3); animation: blackflagPulse 1.5s ease-in-out infinite; }
+@keyframes blackflagPulse { 0%, 100% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.8), inset 0 0 20px rgba(220, 38, 38, 0.3); } 50% { box-shadow: 0 0 45px rgba(220, 38, 38, 1), inset 0 0 30px rgba(220, 38, 38, 0.5); } }
+.sync-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 9px; font-weight: 700; transition: all 0.3s; }
+.sync-online { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); color: #4ade80; }
+.sync-offline { background: rgba(148, 163, 184, 0.2); border: 1px solid rgba(148, 163, 184, 0.5); color: #94a3b8; }
+.sync-syncing { background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.5); color: #fbbf24; animation: syncPulse 1s infinite; }
+@keyframes syncPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+</style>
+</head>
+<body class="font-sans antialiased min-h-screen flex justify-center relative bg-[#030107]">
+<canvas id="nightSkyCanvas"></canvas>
+<audio id="htmlAudioPlayer" class="hidden" loop preload="none"></audio>
+<audio id="voicePlayer" class="hidden"></audio>
+<audio id="charMusicPlayer" class="hidden" loop></audio>
+<div id="toastContainer" class="toast-container"></div>
+<div id="dialoguePopup" class="dialogue-popup neon-dialogue-bar text-center">
+  <p id="dialogueText" class="text-amber-200 font-bold text-base sm:text-lg"></p>
+  <p id="dialogueChar" class="text-lavender-light text-[11px] mt-1 italic"></p>
+</div>
+
+<div class="w-full max-w-5xl min-h-screen flex flex-col relative z-20 px-3 sm:px-6 border-x border-lavender/15 bg-night-bg/90 shadow-[0_0_80px_rgba(0,0,0,0.95)]">
+  <div id="birthdayMarqueeBar" class="hidden bg-gradient-to-r from-purple-950 via-pink-900 to-purple-950 border-b border-pink-400/50 py-1.5 px-4 text-xs font-bold text-amber-200 overflow-hidden sticky top-0 z-50 shadow-lg backdrop-blur-md -mx-3 sm:-mx-6">
+    <div class="marquee-track flex items-center gap-4">
+      <span id="birthdayMarqueeText">🎂 CHÚC MỪNG SINH NHẬT! 🌸</span>
+      <span>✨ Chúc bạn một ngày tràn đầy niềm vui cùng RAU MUỐNG! 💖</span>
+      <span>🎉 Sinh nhật ngọt ngào hạnh phúc! 👑</span>
+    </div>
+  </div>
+
+  <header class="border-b border-night-border backdrop-blur-md bg-night-bg/90 sticky top-0 z-40 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-lavender-dark to-lavender flex items-center justify-center shadow-lg shadow-purple-900/60">
+        <i class="fa-solid fa-seedling text-white text-sm"></i>
+      </div>
+      <div>
+        <h1 class="font-title text-xl font-extrabold tracking-widest text-white leading-none text-glow">RAU MUỐNG</h1>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <p class="text-[9px] text-lavender-light uppercase tracking-widest">Character Realm</p>
+          <span id="syncBadge" class="sync-badge sync-syncing"><i class="fa-solid fa-cloud text-[8px]"></i><span id="syncBadgeText">Đang kết nối...</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center space-x-2">
+      <button onclick="openRankingModal()" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-night-card border border-amber-400/40 hover:border-amber-400 text-amber-300 hover:text-white btn-glow-subtle flex items-center gap-1.5">
+        <i class="fa-solid fa-trophy text-amber-400"></i><span class="hidden sm:inline">Xếp Hạng</span>
+      </button>
+      <button onclick="openGuideModal()" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-night-card border border-lavender/40 hover:border-lavender text-lavender-light hover:text-white btn-glow-subtle flex items-center gap-1.5">
+        <i class="fa-solid fa-circle-question text-lavender"></i><span class="hidden sm:inline">Hướng Dẫn</span>
+      </button>
+      <button onclick="openMailboxModal()" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-night-card border border-lavender/40 hover:border-lavender text-lavender-light hover:text-white transition flex items-center gap-1.5 btn-glow-subtle">
+        <i class="fa-solid fa-envelope text-lavender"></i><span class="hidden sm:inline">Gửi Thư</span>
+      </button>
+      <a href="https://www.facebook.com/share/19ppv8AKJZ/" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-[#1877F2]/20 border border-[#1877F2]/60 hover:border-[#1877F2] text-blue-300 hover:text-white transition flex items-center gap-1.5 btn-glow-subtle">
+        <i class="fa-brands fa-facebook"></i><span class="hidden sm:inline">Facebook</span>
+      </a>
+      <div id="userHeaderBadge" class="hidden items-center gap-2 bg-night-card border border-night-border px-2.5 py-1.5 rounded-xl text-xs">
+        <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-lavender-dark to-lavender flex items-center justify-center text-white font-bold text-[10px]" id="userAvatarText">U</div>
+        <div class="flex flex-col text-left">
+          <span class="font-bold text-white text-[11px] leading-tight" id="userDisplayName">User</span>
+          <span class="text-[9px] text-lavender-light" id="userAgeBadge">18 tuổi</span>
+        </div>
+        <button onclick="logoutUser()" title="Đăng xuất" class="ml-1 text-slate-400 hover:text-red-400 text-xs p-1"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+      <button onclick="openAdminPortal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-900 to-lavender-dark hover:from-purple-800 hover:to-lavender border border-lavender/50 text-white flex items-center gap-1.5 btn-glow-purple">
+        <i class="fa-solid fa-lock text-lavender-light"></i><span>Admin 🔐</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="pt-6 pb-3 text-center">
+    <span class="inline-block px-3 py-1 rounded-full text-[11px] font-semibold bg-purple-950/60 border border-lavender/40 text-lavender-light mb-2 shadow-inner">˖◛⁺⑅♡♡⑅⁺◛˖</span>
+    <h2 class="text-2xl sm:text-4xl font-extrabold text-white font-title tracking-wide text-glow"> Bộ Sưu Tập Nhân Vật </h2>
+    <p class="mt-1.5 text-slate-400 text-xs sm:text-sm max-w-xl mx-auto px-2"> Chúc các bbi chơi vui vẻ</p>
+    <div class="mt-5 max-w-xl mx-auto space-y-2.5">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-lavender/60 text-xs"></i>
+        <input type="text" id="searchInput" placeholder="Tìm theo tên nhân vật, người tạo, thể loại..." class="w-full pl-9 pr-3 py-2 bg-night-card border border-night-border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-lavender text-xs transition">
+      </div>
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div class="flex items-center gap-1.5 overflow-x-auto py-1 px-1 tag-scrollbar flex-1" id="tagFilters"></div>
+        <button onclick="toggleHonorMarqueeGlobal()" id="btnToggleHonor" class="shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-night-card border border-pink-500/40 text-pink-300 hover:text-white btn-glow-subtle flex items-center gap-1">
+          <i class="fa-solid fa-bullhorn text-[10px]"></i><span id="honorToggleText">Ẩn Chạy Chữ</span>
+        </button>
+        <button onclick="toggleCommentsFloatGlobal()" id="btnToggleCommentFloat" class="shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-night-card border border-cyan-400/40 text-cyan-300 hover:text-white btn-glow-subtle flex items-center gap-1">
+          <i class="fa-solid fa-comment-dots text-[10px]"></i><span id="commentFloatToggleText">Ẩn Comment Bay</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <main class="py-4 flex-1 w-full">
+    <div id="characterContainer" class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 justify-items-center md:justify-items-stretch"></div>
+    <div id="emptyView" class="hidden text-center py-16">
+      <i class="fa-regular fa-compass text-4xl text-lavender/30 mb-2"></i>
+      <p class="text-slate-400 text-xs">Không tìm thấy nhân vật nào phù hợp!</p>
+    </div>
+  </main>
+
+  <footer class="border-t border-night-border/80 py-4 text-center text-xs text-slate-500 mt-auto">
+    <p>© RAU MUỐNG ✧ NƯỚC MẮM</p>
+    <p class="mt-1 text-[10px] text-lavender-light/60">love you</p>
+  </footer>
+</div>
+
+<aside class="fixed bottom-3 left-3 z-40 bg-night-card/90 backdrop-blur-md border border-lavender/40 p-2 rounded-2xl shadow-xl flex items-center gap-2.5 btn-glow-subtle">
+  <div id="musicDisk" class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-800 to-lavender flex items-center justify-center text-white text-[11px] spin-music spin-paused shadow-md border border-white/20"><i class="fa-solid fa-music"></i></div>
+  <div class="hidden sm:block text-left pr-1 max-w-[130px]">
+    <p class="text-[11px] font-bold text-white truncate" id="bgmTitleDisplay">Catbox BGM</p>
+    <p class="text-[9px] text-lavender-light truncate" id="bgmStatusDisplay">Chạm để phát</p>
+  </div>
+  <div class="flex items-center gap-1">
+    <button onclick="toggleMusicPlayback()" id="btnPlayPause" class="w-7 h-7 rounded-lg bg-lavender/20 hover:bg-lavender text-lavender hover:text-white flex items-center justify-center text-xs transition"><i class="fa-solid fa-play" id="playIcon"></i></button>
+    <button onclick="nextSong()" title="Bài tiếp theo" class="w-7 h-7 rounded-lg bg-lavender/20 hover:bg-lavender text-lavender hover:text-white flex items-center justify-center text-xs transition"><i class="fa-solid fa-forward"></i></button>
+  </div>
+</aside>
+
+<button onclick="toggleChatRoomModal()" class="fixed bottom-3 right-3 z-40 px-3.5 py-2.5 rounded-full bg-lavender-dark/80 hover:bg-lavender/80 border border-lavender/60 text-white text-xs font-bold shadow-2xl backdrop-blur-xl flex items-center gap-2 transition btn-glow-purple">
+  <i class="fa-solid fa-comments text-lavender-light animate-pulse"></i><span>Phòng Chat</span><span class="w-2 h-2 rounded-full bg-green-400 animate-ping"></span>
+</button>
+
+<!-- Announcement -->
+<div id="announcementModal" class="fixed inset-0 bg-black/95 backdrop-blur-lg z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-night-card border-2 border-lavender/60 p-6 sm:p-8 rounded-3xl max-w-lg w-full shadow-2xl relative text-center announce-slide-in">
+    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-900 to-lavender flex items-center justify-center mx-auto mb-4 shadow-xl shadow-purple-900/60 text-2xl text-white"><i class="fa-solid fa-bullhorn"></i></div>
+    <h3 class="text-2xl font-bold font-title text-white mb-2 text-glow" id="noticeDisplayTitle">Thông Báo</h3>
+    <div class="bg-black/60 border border-night-border p-4 rounded-2xl text-xs sm:text-sm text-slate-300 leading-relaxed text-left max-h-60 overflow-y-auto mb-5 whitespace-pre-line" id="noticeDisplayContent"></div>
+    <div class="flex flex-col sm:flex-row gap-2.5">
+      <button onclick="proceedFromNoticeToGuide()" class="flex-1 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-800 to-lavender text-white shadow-lg btn-glow-purple">Đã Hiểu & Xem Hướng Dẫn ✨</button>
+      <button onclick="closeNoticeDirectly()" class="py-3 px-4 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-slate-300 transition">Bỏ Qua</button>
+    </div>
+  </div>
+</div>
+
+<!-- Daily Rank -->
+<div id="dailyRankModal" class="fixed inset-0 bg-black/95 backdrop-blur-lg z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-night-card border-2 border-amber-500/60 p-6 sm:p-8 rounded-3xl max-w-lg w-full shadow-2xl relative text-center announce-slide-in">
+    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-amber-900/60 text-2xl text-black"><i class="fa-solid fa-trophy"></i></div>
+    <h3 class="text-2xl font-bold font-title text-white mb-1 text-glow">🏆 BXH HÔM NAY</h3>
+    <p class="text-[11px] text-amber-300 mb-4" id="dailyRankDate"></p>
+    <div id="dailyRankContent" class="bg-black/60 border border-night-border p-3 rounded-2xl text-left max-h-[60vh] overflow-y-auto mb-5 space-y-2"></div>
+    <button onclick="closeModal('dailyRankModal')" class="w-full py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-700 to-amber-500 text-white shadow-lg btn-glow-purple">Bắt Đầu Khám Phá 🚀</button>
+  </div>
+</div>
+
+<!-- Guide -->
+<div id="guideModal" class="fixed inset-0 bg-black/95 backdrop-blur-lg z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-night-card border border-lavender/50 p-5 sm:p-7 rounded-3xl max-w-xl w-full shadow-2xl my-6 text-left relative">
+    <div class="flex items-center justify-between border-b border-night-border pb-3 mb-3">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-lavender/20 border border-lavender/40 text-lavender flex items-center justify-center text-sm font-bold"><i class="fa-solid fa-book-bookmark"></i></div>
+        <div><h3 class="text-base font-bold text-white">Hướng Dẫn Khám Phá Web</h3><p class="text-[10px] text-lavender-light">Mẹo trải nghiệm trọn vẹn nhất</p></div>
+      </div>
+      <button onclick="closeModal('guideModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1 text-xs text-slate-300">
+      <div class="bg-black/50 p-3.5 rounded-2xl border border-night-border whitespace-pre-line leading-relaxed" id="guideDisplayText"></div>
+      <div id="guideImagesContainer" class="relative w-full bg-black/60 rounded-2xl overflow-hidden border border-night-border hidden">
+        <div class="w-full flex items-center justify-center p-2 min-h-[200px] max-h-[60vh]"><img id="guideDisplayImage" src="" alt="Hướng dẫn" class="max-h-[55vh] w-auto max-w-full object-contain rounded-xl"></div>
+        <button id="guideNavPrev" onclick="changeGuideImage(-1)" class="guide-nav-btn left-3 hidden">‹</button>
+        <button id="guideNavNext" onclick="changeGuideImage(1)" class="guide-nav-btn right-3 hidden">›</button>
+        <span id="guideImageCounter" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] bg-black/80 px-2.5 py-0.5 rounded-full text-lavender-light font-bold border border-lavender/40"></span>
+      </div>
+    </div>
+    <div class="pt-4 mt-3 border-t border-night-border flex justify-end">
+      <button onclick="closeModal('guideModal')" class="py-2.5 px-6 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-800 to-lavender text-white btn-glow-purple">Bắt Đầu Khám Phá 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plot -->
+<div id="plotModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+  <div class="bg-night-card border border-lavender/50 p-4 sm:p-6 rounded-3xl max-w-2xl w-full shadow-2xl my-6 relative text-left">
+    <div class="flex items-center justify-between border-b border-night-border pb-3 mb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-purple-900/40 border border-lavender/50 flex items-center justify-center text-lavender font-bold"><i class="fa-solid fa-book-open"></i></div>
+        <div><h3 class="text-base sm:text-lg font-bold text-white leading-tight" id="plotCharName">Tên nhân vật</h3><p class="text-[11px] text-lavender-light" id="plotCharCreator">Tạo bởi: ...</p></div>
+      </div>
+      <button onclick="closePlotModal()" class="text-slate-400 hover:text-white text-lg p-1"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="mb-4 bg-black/70 rounded-2xl p-2 border border-night-border flex flex-col items-center relative overflow-hidden">
+      <div id="plotMediaWrapper" class="w-full flex items-center justify-center min-h-[240px] max-h-[65vh]"></div>
+      <div id="plotGalleryNav" class="hidden absolute inset-x-3 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
+        <button onclick="changePlotImage(-1)" class="pointer-events-auto w-8 h-8 rounded-full bg-black/80 hover:bg-lavender text-white flex items-center justify-center text-sm shadow-lg">‹</button>
+        <button onclick="changePlotImage(1)" class="pointer-events-auto w-8 h-8 rounded-full bg-black/80 hover:bg-lavender text-white flex items-center justify-center text-sm shadow-lg">›</button>
+      </div>
+      <span id="plotImageCounter" class="hidden mt-2 text-[10px] bg-white/10 px-2.5 py-0.5 rounded-full text-lavender-light font-bold">1 / 1</span>
+    </div>
+    <div class="space-y-3 max-h-[40vh] overflow-y-auto pr-1">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-lavender-glow">📖 Bối Cảnh & Cốt Truyện:</h4>
+          <span class="text-[10px] text-slate-400 italic">💡 Chạm vào vùng mờ để mở chữ</span>
+        </div>
+        <div class="text-xs sm:text-[13px] text-slate-300 leading-relaxed whitespace-pre-line bg-black/50 p-4 rounded-2xl border border-night-border" id="plotContentText"></div>
+      </div>
+      <div class="pt-2 flex justify-end gap-2"><button onclick="closePlotModal()" class="px-5 py-2 rounded-xl text-xs font-semibold bg-lavender/20 hover:bg-lavender/30 text-lavender-light btn-glow-subtle">Đóng Cốt Truyện</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Gate -->
+<div id="authGateModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-night-card border border-lavender/50 p-6 rounded-3xl max-w-sm w-full shadow-2xl relative text-center my-6">
+    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-lavender-dark to-lavender flex items-center justify-center mx-auto mb-2.5 shadow-lg shadow-purple-900/50 text-lg text-white"><i class="fa-solid fa-seedling"></i></div>
+    <h3 class="text-xl font-bold font-title text-white mb-0.5">RAU MUỐNG Realm</h3>
+    <p class="text-xs text-slate-400 mb-3.5">Tạo tài khoản hoặc đăng nhập để tiếp tục:</p>
+    <div class="flex border-b border-night-border mb-4 text-xs font-bold">
+      <button type="button" id="tabAuthLogin" onclick="switchAuthTab('login')" class="w-1/2 pb-2 text-lavender border-b-2 border-lavender transition">Đăng Nhập</button>
+      <button type="button" id="tabAuthRegister" onclick="switchAuthTab('register')" class="w-1/2 pb-2 text-slate-400 hover:text-white transition">Đăng Ký</button>
+    </div>
+    <form id="formLogin" onsubmit="handleLoginSubmit(event)" class="space-y-3 text-left">
+      <div><label class="text-xs font-semibold text-lavender-light block mb-1">Tên tài khoản:</label><input type="text" id="loginUsername" required placeholder="Nhập tên..." class="w-full px-3 py-2 bg-black/50 border border-night-border rounded-xl text-white text-xs focus:outline-none focus:border-lavender"></div>
+      <div><label class="text-xs font-semibold text-lavender-light block mb-1">Mật khẩu:</label><input type="password" id="loginPassword" required placeholder="Nhập mật khẩu..." class="w-full px-3 py-2 bg-black/50 border border-night-border rounded-xl text-white text-xs focus:outline-none focus:border-lavender"></div>
+      <p id="loginErrorMsg" class="hidden text-[11px] text-red-400 text-center"></p>
+      <button type="submit" class="w-full py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-800 to-lavender text-white shadow-lg btn-glow-purple">Đăng Nhập</button>
+    </form>
+    <form id="formRegister" onsubmit="handleRegisterSubmit(event)" class="hidden space-y-3 text-left">
+      <div>
+        <div class="flex items-center justify-between mb-1"><label class="text-xs font-semibold text-lavender-light">Tên muốn tạo *</label><button type="button" onclick="generateRandomNickname()" class="text-[10px] text-amber-300 font-bold">🎲 Random tên</button></div>
+        <input type="text" id="regUsername" required placeholder="Nhập tên..." class="w-full px-3 py-2 bg-black/50 border border-night-border rounded-xl text-white text-xs focus:outline-none focus:border-lavender">
+      </div>
+      <div><label class="text-xs font-semibold text-lavender-light block mb-1">Mật khẩu *</label><input type="password" id="regPassword" required placeholder="Mật khẩu..." class="w-full px-3 py-2 bg-black/50 border border-night-border rounded-xl text-white text-xs focus:outline-none focus:border-lavender"></div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-xs font-semibold text-lavender-light block mb-1">Giới tính</label><select id="regGender" class="w-full px-2 py-2 bg-black/50 border border-night-border rounded-xl text-white text-xs"><option value="Khác">Khác</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option></select></div>
+        <div><label class="text-xs font-semibold text-lavender-light block mb-1">Độ tuổi *</label><input type="number" id="regAge" min="1" max="120" value="18" required class="w-full px-2.5 py-2 bg-black/50 border border-night-border rounded-xl text-white text-xs"></div>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-lavender-light block mb-1">Sinh nhật 🎂:</label>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="regBirthDay" min="1" max="31" required placeholder="Ngày" class="w-full px-3 py-2 bg-black/50 border border-night-border rounded-xl text-white text-xs text-center">
+          <input type="number" id="regBirthMonth" min="1" max="12" required placeholder="Tháng" class="w-full px-3 py-2 bg-black/50 border border-night-border rounded-xl text-white text-xs text-center">
+        </div>
+      </div>
+      <p id="regErrorMsg" class="hidden text-[11px] text-red-400 text-center"></p>
+      <button type="submit" class="w-full py-2.5 rounded-xl text-xs font-bold bg-lavender text-white shadow-lg btn-glow-purple">Đăng Ký & Tự Lưu</button>
+    </form>
+    <div class="pt-3 border-t border-night-border/60 mt-3">
+      <button type="button" onclick="openAdminDirectModal()" class="w-full py-2 px-3 rounded-xl text-xs font-bold bg-amber-500/15 border border-amber-400/40 text-amber-300 flex items-center justify-center gap-1.5 btn-glow-subtle"><i class="fa-solid fa-crown text-amber-400 text-xs"></i><span>Đăng nhập Admin 👑</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Age Confirm -->
+<div id="ageConfirmModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[60] hidden flex items-center justify-center p-4 overflow-y-auto">
+  <div id="ageConfirmInner" class="bg-night-card border-2 border-red-500/60 p-6 rounded-3xl max-w-sm w-full shadow-2xl text-center my-6">
+    <div id="ageConfirmIcon" class="w-14 h-14 rounded-2xl bg-red-900/40 border border-red-500/50 flex items-center justify-center mx-auto mb-3 text-2xl">🔞</div>
+    <h3 class="text-lg font-bold text-white mb-2" id="ageConfirmTitle">Xác Nhận Độ Tuổi</h3>
+    <div class="text-xs text-slate-300 mb-4 whitespace-pre-line text-left" id="ageConfirmText"></div>
+    <div class="flex gap-2">
+      <button onclick="confirmAgeYes()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-red-700 to-red-500 text-white btn-glow-purple">Tôi đã trên 18</button>
+      <button onclick="confirmAgeNo()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-white/10 text-slate-300">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ranking -->
+<div id="rankingModal" class="fixed inset-0 bg-black/95 backdrop-blur-lg z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-night-card border border-amber-500/50 p-5 sm:p-7 rounded-3xl max-w-2xl w-full shadow-2xl my-6 relative text-left">
+    <div class="flex items-center justify-between border-b border-night-border pb-3 mb-3">
+      <h3 class="text-base font-bold font-title text-white flex items-center gap-2 text-glow"><i class="fa-solid fa-trophy text-amber-400"></i> Bảng Xếp Hạng RAU MUỐNG</h3>
+      <button onclick="closeModal('rankingModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="flex flex-wrap border-b border-night-border mb-3 gap-3 text-xs font-semibold">
+      <button onclick="switchRankTab('players')" id="rankTabPlayers" class="pb-1.5 text-amber-300 border-b-2 border-amber-400">🏆 Người Chơi (Tổng)</button>
+      <button onclick="switchRankTab('chars')" id="rankTabChars" class="pb-1.5 text-slate-400 hover:text-white">💖 Char Hot</button>
+      <button onclick="switchRankTab('daily')" id="rankTabDaily" class="pb-1.5 text-slate-400 hover:text-white">📅 Hôm Nay</button>
+    </div>
+    <div id="rankContent" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1"></div>
+  </div>
+</div>
+
+<!-- Admin Portal -->
+<div id="adminModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-start sm:items-center justify-center p-2 sm:p-4 overflow-y-auto">
+  <div class="bg-night-card border border-lavender/50 p-3 sm:p-6 rounded-3xl max-w-3xl w-full shadow-2xl my-4 text-left relative">
+    <div class="flex items-center justify-between border-b border-night-border pb-3 mb-3 sticky top-0 bg-night-card z-10">
+      <h3 class="text-base font-bold font-title text-white flex items-center gap-1.5 text-glow"><i class="fa-solid fa-sparkles text-lavender"></i> Bảng Quản Trị RAU MUỐNG</h3>
+      <button onclick="closeModal('adminModal')" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="flex flex-wrap border-b border-night-border mb-3 gap-2 text-[11px] sm:text-xs font-semibold">
+      <button type="button" onclick="switchAdminTab('create')" id="tabBtnCreate" class="pb-1.5 text-lavender border-b-2 border-lavender">Đăng / Sửa Char</button>
+      <button type="button" onclick="switchAdminTab('charList')" id="tabBtnCharList" class="pb-1.5 text-slate-400 hover:text-white">Quản Lý Char 🔒</button>
+      <button type="button" onclick="switchAdminTab('createComment')" id="tabBtnCreateComment" class="pb-1.5 text-slate-400 hover:text-white">Tạo Comment 💬</button>
+      <button type="button" onclick="switchAdminTab('commentStyle')" id="tabBtnCommentStyle" class="pb-1.5 text-slate-400 hover:text-white">Style Comment 🎨</button>
+      <button type="button" onclick="switchAdminTab('guideConfig')" id="tabBtnGuideConfig" class="pb-1.5 text-slate-400 hover:text-white">Hướng Dẫn</button>
+      <button type="button" onclick="switchAdminTab('notice')" id="tabBtnNotice" class="pb-1.5 text-slate-400 hover:text-white">Thông Báo</button>
+      <button type="button" onclick="switchAdminTab('music')" id="tabBtnMusic" class="pb-1.5 text-slate-400 hover:text-white">Nhạc BGM</button>
+      <button type="button" onclick="switchAdminTab('settings')" id="tabBtnSettings" class="pb-1.5 text-slate-400 hover:text-white">Cài Đặt ⚙️</button>
+      <button type="button" onclick="switchAdminTab('letters')" id="tabBtnLetters" class="pb-1.5 text-slate-400 hover:text-white">Hòm Thư</button>
+      <button type="button" onclick="resetDefaultData()" class="pb-1.5 ml-auto text-red-400 hover:text-red-300"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+    </div>
+    <div class="admin-scroll pr-1">
+      <div id="adminTabCreate">
+        <form onsubmit="handleSaveCharacterForm(event)" class="space-y-3">
+          <input type="hidden" id="editingCharId" value="">
+          <div class="flex items-center justify-between bg-purple-950/30 p-2 rounded-xl border border-purple-800/40">
+            <span class="text-xs font-bold text-lavender-light" id="adminFormModeTitle">➕ Đăng Nhân Vật Mới</span>
+            <button type="button" onclick="cancelEditMode()" id="btnCancelEdit" class="hidden text-[11px] text-red-400 hover:underline">Hủy Chỉnh Sửa</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div><label class="text-[11px] font-semibold text-lavender-light block mb-0.5">Tên nhân vật *</label><input type="text" id="charName" required class="w-full px-2.5 py-1.5 bg-black/50 border border-night-border rounded-xl text-white text-xs"></div>
+            <div><label class="text-[11px] font-semibold text-lavender-light block mb-0.5">Tên người tạo *</label><input type="text" id="charCreator" required class="w-full px-2.5 py-1.5 bg-black/50 border border-night-border rounded-xl text-white text-xs"></div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div><label class="text-[11px] font-semibold text-rose-300 block mb-0.5">Huy hiệu:</label><select id="charBadgeSelect" class="w-full px-2.5 py-1.5 bg-black/50 border border-rose-500/40 rounded-xl text-white text-xs"><option value="">(Không)</option><option value="HOT">🔥 HOT</option><option value="NEW">✨ NEW</option><option value="RCM">💖 RCM</option></select></div>
+            <div class="flex items-center gap-2 pt-4"><label class="cursor-pointer flex items-center gap-2 select-none"><input type="checkbox" id="charIsLocked" class="accent-purple-600 rounded w-4 h-4"><span class="text-xs text-amber-300 font-bold">🔒 Khóa char</span></label></div>
+          </div>
+          <div><label class="text-[11px] font-semibold text-lavender-light block mb-0.5">Link ảnh/video (cách nhau dấu phẩy) *</label><input type="text" id="charImage" required class="w-full px-2.5 py-1.5 bg-black/50 border border-night-border rounded-xl text-white text-xs"></div>
+          <div class="p-3 bg-blue-950/20 rounded-2xl border border-blue-500/30 space-y-2">
+            <h5 class="text-[11px] font-bold text-blue-300">🔗 Link Chơi Char (BL / BG):</h5>
+            <div class="flex flex-wrap gap-3">
+              <label class="cursor-pointer flex items-center gap-2 text-xs text-blue-200 select-none"><input type="checkbox" id="charHasBL" class="accent-blue-500 rounded w-4 h-4"><span>Có link <strong>BL</strong></span></label>
+              <label class="cursor-pointer flex items-center gap-2 text-xs text-pink-200 select-none"><input type="checkbox" id="charHasBG" class="accent-pink-500 rounded w-4 h-4"><span>Có link <strong>BG</strong></span></label>
+            </div>
+            <div id="blLinkWrap" class="hidden"><label class="text-[11px] font-semibold text-blue-300 block mb-0.5">Link BL:</label><input type="url" id="charLinkBL" class="w-full px-2.5 py-1.5 bg-black/60 border border-blue-500/40 rounded-xl text-white text-xs"></div>
+            <div id="bgLinkWrap" class="hidden"><label class="text-[11px] font-semibold text-pink-300 block mb-0.5">Link BG:</label><input type="url" id="charLinkBG" class="w-full px-2.5 py-1.5 bg-black/60 border border-pink-500/40 rounded-xl text-white text-xs"></div>
+          </div>
+          <div><label class="text-[11px] font-semibold text-lavender-light block mb-0.5">Tag có sẵn & Tag tự viết:</label><div class="flex flex-wrap gap-1 mb-1.5" id="presetTagsList"></div><input type="text" id="charCustomTags" placeholder="VD: Hắc Ám, Blackflag..." class="w-full px-2.5 py-1.5 bg-black/50 border border-night-border rounded-xl text-white text-xs"></div>
+          <div><label class="text-[11px] font-semibold text-lavender-light block mb-0.5">Mô tả ngắn *</label><textarea id="charDesc" rows="2" required class="w-full px-2.5 py-1.5 bg-black/50 border border-night-border rounded-xl text-white text-xs"></textarea></div>
+          <div class="p-3 bg-black/60 rounded-2xl border border-night-border space-y-2">
+            <label class="text-[11px] font-bold text-lavender-light uppercase">✍️ Soạn Thảo Plot:</label>
+            <div class="flex flex-wrap gap-1 p-1.5 bg-white/5 rounded-xl border border-white/10 text-xs">
+              <button type="button" onclick="formatPlotText('bold')" class="px-2.5 py-1 rounded bg-black/60 hover:bg-lavender/30 text-white font-bold"><b>B</b></button>
+              <button type="button" onclick="formatPlotText('italic')" class="px-2.5 py-1 rounded bg-black/60 hover:bg-lavender/30 text-white italic"><i>I</i></button>
+              <button type="button" onclick="formatPlotText('underline')" class="px-2.5 py-1 rounded bg-black/60 hover:bg-lavender/30 text-white underline"><u>U</u></button>
+              <button type="button" onclick="formatPlotText('strike')" class="px-2.5 py-1 rounded bg-black/60 hover:bg-lavender/30 text-white line-through"><s>S</s></button>
+              <button type="button" onclick="formatPlotText('quote')" class="px-2.5 py-1 rounded bg-black/60 hover:bg-lavender/30 text-lavender-light">" "</button>
+              <button type="button" onclick="formatPlotText('mark')" class="px-2.5 py-1 rounded bg-black/60 hover:bg-lavender/30 text-amber-300">🖍️</button>
+            </div>
+            <textarea id="charPlot" rows="6" required class="w-full px-2.5 py-2 bg-black/40 border border-night-border rounded-xl text-white text-xs"></textarea>
+          </div>
+          <div class="p-3 bg-red-950/20 rounded-2xl border border-red-500/30 space-y-1.5"><label class="text-[11px] font-bold text-red-300">🔞 Từ nhạy cảm cần làm mờ:</label><input type="text" id="charCensorWords" class="w-full px-2.5 py-1.5 bg-black/60 border border-red-500/40 rounded-xl text-white text-xs"></div>
+          <div class="p-3 bg-purple-950/30 rounded-2xl border border-purple-500/40 space-y-2">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <label class="text-[11px] font-bold text-purple-300">💬 Lời thoại theo mốc MOAH:</label>
+              <button type="button" onclick="addDialogueRow()" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-purple-600/40 hover:bg-purple-600/60 border border-purple-400/50 text-white">➕ Thêm mốc</button>
+            </div>
+            <div id="dialogueRowsWrap" class="space-y-1.5"></div>
+          </div>
+          <div class="p-3 bg-purple-950/30 rounded-2xl border border-purple-500/40 space-y-1.5"><label class="text-[11px] font-bold text-purple-300">🎵 Nhạc riêng của char:</label><input type="url" id="charMusicUrl" class="w-full px-2.5 py-1.5 bg-black/60 border border-purple-500/40 rounded-xl text-white text-xs"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="p-3 bg-black/60 rounded-2xl border border-night-border space-y-1.5"><label class="text-[11px] font-bold text-amber-300">💖 Set tim:</label><input type="number" id="charLikesSet" min="0" class="w-full px-2.5 py-1.5 bg-black/60 border border-amber-500/40 rounded-xl text-white text-xs"></div>
+            <div class="p-3 bg-black/60 rounded-2xl border border-night-border space-y-1.5"><label class="text-[11px] font-bold text-emerald-300">👁 Set view:</label><input type="number" id="charViewsSet" min="0" class="w-full px-2.5 py-1.5 bg-black/60 border border-emerald-500/40 rounded-xl text-white text-xs"></div>
+          </div>
+          <div class="flex justify-end gap-2 pt-2 border-t border-night-border">
+            <button type="button" onclick="closeModal('adminModal')" class="px-4 py-1.5 rounded-xl text-xs text-slate-400">Đóng</button>
+            <button type="submit" id="btnSubmitCharForm" class="px-5 py-2 rounded-xl text-xs font-bold bg-lavender hover:bg-lavender-glow text-white btn-glow-purple">Lưu</button>
+          </div>
+        </form>
+      </div>
+      <div id="adminTabCharList" class="hidden space-y-3"><h4 class="text-xs font-bold text-lavender-light">Danh Sách Quản Lý Char</h4><div id="adminCharManageList" class="space-y-2"></div></div>
+      <div id="adminTabCreateComment" class="hidden space-y-3">
+        <form onsubmit="handleAdminCreateComment(event)" class="bg-black/40 p-4 rounded-2xl border border-night-border space-y-3">
+          <h4 class="text-xs font-bold text-cyan-300">💬 Tạo Bình Luận Thủ Công:</h4>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Chọn nhân vật *</label><select id="adminCommentCharId" required class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></select></div>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Nickname *</label><input type="text" id="adminCommentAuthor" required class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></div>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Nội dung comment *</label><textarea id="adminCommentText" rows="3" required class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></textarea></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="text-[11px] text-slate-300 block mb-1">Giờ (HH:MM:SS)</label><input type="text" id="adminCommentTime" class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></div>
+            <div><label class="text-[11px] text-slate-300 block mb-1">Ngày (DD/MM/YYYY)</label><input type="text" id="adminCommentDate" class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></div>
+          </div>
+          <div class="flex justify-end"><button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white btn-glow-purple">➕ Đăng Comment</button></div>
+        </form>
+        <div class="bg-black/40 p-4 rounded-2xl border border-night-border space-y-2">
+          <div class="flex items-center justify-between"><h4 class="text-xs font-bold text-slate-300">📋 Comment gần đây</h4><button onclick="renderRecentAdminComments()" class="text-[10px] text-cyan-300 hover:text-cyan-200">🔄 Refresh</button></div>
+          <div id="recentAdminCommentsList" class="space-y-2 max-h-64 overflow-y-auto"></div>
+        </div>
+      </div>
+      <div id="adminTabCommentStyle" class="hidden space-y-3">
+        <form onsubmit="handleSaveCommentStyle(event)" class="bg-black/40 p-4 rounded-2xl border border-night-border space-y-3">
+          <h4 class="text-xs font-bold text-pink-300">🎨 Style Comment Bay Quanh Char:</h4>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Chọn nhân vật *</label><select id="styleCharId" required onchange="loadCharStyleSettings()" class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></select></div>
+          <label class="cursor-pointer flex items-center gap-2 text-xs text-slate-200 select-none"><input type="checkbox" id="styleEnabled" class="accent-pink-500 rounded w-4 h-4"><span>Bật comment bay cho char này</span></label>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="text-[11px] text-slate-300 block mb-1">Màu chữ:</label><input type="color" id="styleColor" value="#c084fc" class="w-full h-10 rounded-xl bg-black/60 border border-night-border cursor-pointer"></div>
+            <div><label class="text-[11px] text-slate-300 block mb-1">Màu neon:</label><input type="color" id="styleGlowColor" value="#c084fc" class="w-full h-10 rounded-xl bg-black/60 border border-night-border cursor-pointer"></div>
+          </div>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Độ trong suốt: <span id="styleOpacityLabel">0.85</span></label><input type="range" id="styleOpacity" min="0.1" max="1" step="0.05" value="0.85" class="w-full accent-pink-500" oninput="document.getElementById('styleOpacityLabel').innerText=this.value"></div>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Tốc độ bay:</label><select id="styleSpeed" class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"><option value="slow">🐢 Chậm</option><option value="normal" selected>🚶 Bình thường</option><option value="fast">🏃 Nhanh</option></select></div>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Cỡ chữ:</label><select id="styleFontSize" class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"><option value="9">Nhỏ</option><option value="10" selected>Vừa</option><option value="12">Lớn</option><option value="14">Rất lớn</option></select></div>
+          <div class="flex justify-end"><button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-pink-600 hover:bg-pink-500 text-white btn-glow-purple">💾 Lưu Style</button></div>
+        </form>
+      </div>
+      <div id="adminTabGuideConfig" class="hidden space-y-3">
+        <form onsubmit="handleSaveGuideConfig(event)" class="bg-black/40 p-4 rounded-2xl border border-night-border space-y-3">
+          <h4 class="text-xs font-bold text-amber-300">Sửa Hướng Dẫn:</h4>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Nội dung chữ:</label><textarea id="adminGuideText" rows="6" required class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></textarea></div>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Link ảnh (cách nhau dấu phẩy):</label><textarea id="adminGuideImages" rows="3" class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></textarea></div>
+          <div class="flex justify-end"><button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-lavender text-white btn-glow-purple">Lưu Hướng Dẫn</button></div>
+        </form>
+      </div>
+      <div id="adminTabNotice" class="hidden space-y-3">
+        <form onsubmit="handleUpdateNotice(event)" class="bg-black/40 p-4 rounded-2xl border border-night-border space-y-3">
+          <h4 class="text-xs font-bold text-lavender-light">Cập Nhật Thông Báo:</h4>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Tiêu đề:</label><input type="text" id="adminNoticeTitle" required class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></div>
+          <div><label class="text-[11px] text-slate-300 block mb-1">Nội dung:</label><textarea id="adminNoticeContent" rows="5" required class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></textarea></div>
+          <div class="flex justify-end"><button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-lavender text-white btn-glow-purple">Lưu Thông Báo</button></div>
+        </form>
+      </div>
+      <div id="adminTabMusic" class="hidden space-y-3">
+        <div class="bg-black/40 p-4 rounded-2xl border border-night-border space-y-3">
+          <h4 class="text-xs font-bold text-lavender-light">Quản Lý Playlist Nhạc:</h4>
+          <div id="adminMusicList" class="space-y-2"></div>
+          <div class="pt-2 border-t border-night-border space-y-2">
+            <input type="text" id="newMusicTitle" placeholder="Tên bài..." class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs">
+            <input type="url" id="newMusicUrl" placeholder="https://nhac.mp3..." class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs">
+            <button type="button" onclick="addNewMusic()" class="w-full py-2 rounded-xl text-xs font-bold bg-lavender text-white btn-glow-purple">➕ Thêm Nhạc</button>
+          </div>
+        </div>
+      </div>
+      <div id="adminTabSettings" class="hidden space-y-3">
+        <div class="bg-black/40 p-4 rounded-2xl border border-night-border space-y-3">
+          <h4 class="text-xs font-bold text-amber-300">⚙️ Cài Đặt Web:</h4>
+          <label class="cursor-pointer flex items-center gap-2 text-xs text-slate-200 select-none p-2 bg-purple-950/20 rounded-xl border border-purple-500/30"><input type="checkbox" id="settingDailyRankPopup" class="accent-amber-500 rounded w-4 h-4" onchange="saveDailyRankSetting()"><span>Hiện popup <strong>BXH Hôm Nay</strong> khi user vào web</span></label>
+          <label class="cursor-pointer flex items-center gap-2 text-xs text-slate-200 select-none p-2 bg-purple-950/20 rounded-xl border border-purple-500/30"><input type="checkbox" id="settingAllowRegister" class="accent-amber-500 rounded w-4 h-4" onchange="saveAllowRegisterSetting()"><span>Cho phép user đăng ký tài khoản mới</span></label>
+          <div class="p-3 bg-cyan-950/20 rounded-xl border border-cyan-500/30 space-y-2">
+            <h5 class="text-[11px] font-bold text-cyan-300">☁️ Cloud Sync (Firebase Realtime):</h5>
+            <p class="text-[10px] text-slate-400">Trạng thái: <span id="cloudStatusText">Đang kiểm tra...</span></p>
+            <button type="button" onclick="pushAllToCloud(true)" class="w-full py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white btn-glow-purple">🔄 Push toàn bộ lên Cloud</button>
+            <button type="button" onclick="pullAllFromCloud()" class="w-full py-2 rounded-xl text-xs font-bold bg-cyan-800 hover:bg-cyan-700 text-white">⬇️ Kéo dữ liệu từ Cloud về</button>
+            <p class="text-[10px] text-slate-500">💡 Dữ liệu tự động đồng bộ realtime giữa MỌI thiết bị/người dùng.</p>
+          </div>
+        </div>
+      </div>
+      <div id="adminTabLetters" class="hidden"><div id="adminLettersList" class="space-y-2"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mailbox -->
+<div id="mailboxModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-night-card border border-lavender/50 p-5 rounded-2xl max-w-md w-full shadow-2xl relative text-left">
+    <div class="flex items-center justify-between border-b border-night-border pb-2.5 mb-3">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-envelope text-lavender"></i> Gửi Thư Cho Admin</h3>
+      <button onclick="closeModal('mailboxModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="handleSendLetterToAdmin(event)" class="space-y-2.5">
+      <div><label class="text-[11px] font-semibold text-lavender-light block mb-1">Mục đích:</label><select id="letterType" class="w-full px-2.5 py-1.5 bg-black/60 border border-night-border rounded-xl text-white text-xs"><option value="Động viên">💖 Động viên</option><option value="Góp ý">💡 Góp ý</option><option value="Câu hỏi">❓ Câu hỏi</option></select></div>
+      <div><label class="text-[11px] font-semibold text-lavender-light block mb-1">Nội dung *</label><textarea id="letterContent" rows="4" required class="w-full px-2.5 py-1.5 bg-black/60 border border-night-border rounded-xl text-white text-xs"></textarea></div>
+      <div class="flex justify-end gap-2 pt-1">
+        <button type="button" onclick="closeModal('mailboxModal')" class="px-3 py-1.5 rounded-xl text-xs text-slate-400">Hủy</button>
+        <button type="submit" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-lavender text-white btn-glow-purple">Gửi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Chat Room -->
+<div id="chatRoomModal" class="fixed bottom-16 right-3 sm:right-6 w-[92vw] sm:w-96 max-h-[520px] h-[78vh] z-50 hidden flex-col rounded-3xl backdrop-blur-2xl bg-black/40 border border-lavender/50 shadow-2xl overflow-hidden">
+  <div class="p-3.5 border-b border-white/10 bg-black/40 backdrop-blur-xl flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full bg-lavender/30 flex items-center justify-center text-lavender font-bold text-xs border border-lavender/40">💬</div>
+      <div><h4 class="text-xs font-bold text-white">Phòng Chat RAU MUỐNG</h4><p class="text-[10px] text-lavender-light">Sync realtime toàn cầu</p></div>
+    </div>
+    <button onclick="toggleChatRoomModal()" class="text-slate-400 hover:text-white text-sm p-1"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div id="chatMessagesContainer" class="flex-1 p-3 overflow-y-auto space-y-4 text-xs bg-black/20 backdrop-blur-sm"></div>
+  <form onsubmit="handleSendChatMessage(event)" class="p-2.5 border-t border-white/10 bg-black/40 backdrop-blur-xl flex items-center gap-2 relative">
+    <div id="replyPreview" class="hidden absolute bottom-full left-2 right-2 mb-2 px-3 py-1.5 bg-black/90 backdrop-blur border border-lavender/40 rounded-xl text-[10px] text-lavender-light flex items-center justify-between"><span id="replyPreviewText" class="truncate"></span><button type="button" onclick="cancelReply()" class="text-red-400 ml-2"><i class="fa-solid fa-xmark"></i></button></div>
+    <input type="text" id="chatInputMessage" required placeholder="Nhập tin nhắn..." class="flex-1 px-3 py-2 bg-black/60 border border-white/10 rounded-xl text-white text-xs placeholder-slate-400 focus:outline-none focus:border-lavender">
+    <button type="submit" class="w-9 h-9 rounded-xl bg-lavender hover:bg-lavender-glow text-white flex items-center justify-center text-xs btn-glow-purple"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+  </form>
+</div>
+
+<!-- Comments Modal -->
+<div id="commentsModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-night-card border border-lavender/50 p-5 rounded-2xl max-w-md w-full shadow-2xl relative text-left max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between border-b border-night-border pb-2.5 mb-3">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-comments text-lavender"></i> Bình luận nhân vật</h3>
+      <button onclick="closeModal('commentsModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="commentsList" class="space-y-2 overflow-y-auto pr-1 mb-3 flex-1"></div>
+    <form onsubmit="handleAddComment(event)" class="space-y-2">
+      <div id="commentReplyPreview" class="hidden px-3 py-1.5 bg-black/80 border border-lavender/40 rounded-xl text-[10px] text-lavender-light flex items-center justify-between"><span id="commentReplyText" class="truncate"></span><button type="button" onclick="cancelCommentReply()" class="text-red-400 ml-2"><i class="fa-solid fa-xmark"></i></button></div>
+      <textarea id="commentInput" rows="2" required placeholder="Viết bình luận..." class="w-full px-2.5 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs"></textarea>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeModal('commentsModal')" class="px-3 py-1.5 rounded-xl text-xs text-slate-400">Hủy</button>
+        <button type="submit" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-lavender text-white btn-glow-purple">Gửi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Admin Password Modal -->
+<div id="loginModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-night-card border border-amber-500/50 p-6 rounded-3xl max-w-xs w-full shadow-2xl relative text-left">
+    <h3 class="text-base font-bold font-title text-white text-center mb-1">Xác Thực Admin</h3>
+    <form onsubmit="handleAdminLogin(event)" class="space-y-2.5 mt-3">
+      <input type="password" id="adminPassword" placeholder="Nhập mật khẩu..." required class="w-full px-3 py-2 bg-black/60 border border-night-border rounded-xl text-white text-xs">
+      <p id="adminPassError" class="hidden text-[10px] text-red-400 text-center">Sai mật khẩu!</p>
+      <div class="flex justify-end gap-2 pt-1">
+        <button type="button" onclick="closeModal('loginModal')" class="px-3 py-1.5 rounded-xl text-xs text-slate-400 bg-white/5">Đóng</button>
+        <button type="submit" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-black">Vào</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   🔥 FIREBASE CONFIG (Đã điền sẵn - lấy từ project obannuocmam)
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBnInUMxNdoQrzqiJcrqGxMtIBp7xTetVc",
+  authDomain: "obannuocmam.firebaseapp.com",
+  databaseURL: "https://obannuocmam-default-rtdb.firebaseio.com",
+  projectId: "obannuocmam",
+  storageBucket: "obannuocmam.firebasestorage.app",
+  messagingSenderId: "187965096366",
+  appId: "1:187965096366:web:0ad7289f20369bce05483",
+  measurementId: "G-F4ME92E9B8"
+};
+const CLOUD_PATH = "raumuong_v26";
+
+const ADMIN_PASSWORDS = ["lhvvvvwvv__@09."];
+const FORBIDDEN_NAMES = ["admin", "administrator", "quản trị", "quantri", "quantri123", "root", "system", "moderator", "mod", "boss", "owner"];
+const RANDOM_NICKNAMES = [
+  "Mèo Lười Oải Hương", "Cá Cơm Biết Bơi", "Gió Mùa Thu", "Bé Bắp Ngọt", "Tiểu Nguyệt", "Kẹo Dẻo Tím",
+  "Mây Lơ Lửng", "Trà Sữa Khoai Môn", "Bông Tuyết Nhỏ", "Tiểu Cầm", "Sương Mai", "Bé Gấu Tím",
+  "Ánh Trăng Đêm", "Hoa Oải Hương Tím", "Cún Con Lười", "Thỏ Trắng Mơ Màng", "Sao Băng Nhỏ",
+  "Bánh Bao Nhân Tím", "Đêm Trăng Sao", "Gió Lạnh Mùa Đông", "Mưa Tím Chiều", "Nắng Sớm Mai",
+  "Chiều Tà Tím", "Kem Dâu Tím", "Bồ Công Anh Bay", "Hạc Trắng Mộng", "Tuyết Rơi Mùa Đông",
+  "Lửa Tím Đêm", "Hồ Ly Tinh Nghịch", "Mèo Đen Huyền Bí", "Bướm Đêm Tím", "Nhím Lười Biếng",
+  "Sóc Nhỏ Năng Động", "Hoa Đào Phai", "Sương Sớm Long Lanh", "Nguyệt Cầm Tím", "Yêu Tinh Nhỏ",
+  "Sói Trắng Mộng Mơ", "Thiên Thần Tím", "Ác Ma Dễ Thương", "Tiên Cá Tím"
+];
+const DEFAULT_NOTICE = {
+  title: "Thông Báo Từ RAU MUỐNG",
+  content: "Chào mừng bạn đến với thế giới nhân vật RAU MUỐNG! Hãy khám phá cốt truyện, thả tim và trao nụ hôn moah moah ngọt ngào nhé 🌸💜\n\n📌 Mọi tương tác (tim, bình luận, hôn, chat) đều được LƯU VĨNH VIỄN trên Firebase và hiển thị cho TẤT CẢ mọi người!"
+};
+const DEFAULT_GUIDE = {
+  text: "✨ HƯỚNG DẪN TRẢI NGHIỆM RAU MUỐNG:\n\n1. Đăng ký tài khoản một lần, web tự nhớ vĩnh viễn.\n2. Chạm vào bất kỳ đâu trên màn hình để thấy bông tuyết nhỏ li ti bắn ra!\n3. Bấm 'Đọc Plot' để xem toàn bộ ảnh + cốt truyện. Nhạc riêng của char sẽ tự phát.\n4. Bấm liên tục nút '💋 Chụt chụt' để trao nụ hôn. Vượt mốc sẽ được vinh danh!\n5. Bấm 'Chọn Char' để bắt đầu tương tác.\n6. Xem bảng xếp hạng tại nút 🏆 trên header.\n7. Chat, bình luận, gửi thư - TẤT CẢ đều được lưu vĩnh viễn trên Firebase.\n8. Comment bay quanh nhân vật như livestream!\n\n☁️ Dữ liệu được đồng bộ REALTIME giữa MỌI thiết bị qua Firebase.",
+  images: []
+};
+const DEFAULT_PLAYLIST = [{ id: "bgm_1", title: "Catbox BGM (Mặc Định)", url: "https://files.catbox.moe/io1op0.mp3" }];
+const PRESET_TAGS = ["18+", "NSFW", "Hiện đại", "Xuyên không", "Học Đường", "Thanh Xuân", "Hào Môn", "Yakuza", "Tsundere", "Chiếm Hữu", "Lạnh lùng", "Redflag", "Blackflag", "Slowburn", "Dark Romance", "Yandere"];
+
+const DEFAULT_CHARACTERS = [
+  { id: "char_mac_nguy", name: "Mạc Ngụy – .. ..M", creator: "Admin bối rối", badge: "HOT", isLocked: false,
+    gallery: ["https://i.ibb.co/YFjzVdJV/Kh-ng-C-Ti-u-1055-20260904133408.png","https://i.ibb.co/27jmNjPJ/Kh-ng-C-Ti-u-1051-20260902160245.png","https://i.ibb.co/J9XLvvt/Kh-ng-C-Ti-u-1049.png","https://i.ibb.co/9HtL0Fd0/Kh-ng-C-Ti-u-1053-20260904131340.png","https://i.ibb.co/mVLkksDv/Kh-ng-C-Ti-u-1053-20260904131322.png"],
+    description: "\"Em dạy tôi cách yêu, còn cách quên em thì không.\"",
+    plot: "\"Em dạy tôi cách yêu, còn cách quên em thì không.\"\n\nBối cảnh: Hiện đại kết hợp xuyên không & hệ thống. Bạn chính là bạch nguyệt quang duy nhất sưởi ấm tâm hồn lạnh lẽo của Mạc Ngụy. Sau đó vì nhiệm vụ bạn giả chết rời đi khiến hắn hoàn toàn phát điên và chiếm hữu cùng cực...",
+    censorWords: "giả chết, phát điên, chiếm hữu",
+    tags: ["Hiện đại", "18+", "Xuyên không", "Lạnh lùng", "Slowburn"],
+    hasBL: true, hasBG: true, linkBL: "https://aistudio.google.com/", linkBG: "https://aistudio.google.com/",
+    views: 0, likes: 0, kisses: 0, topKisser: "",
+    dialogues: [{ kisses: 10, text: "Đừng hôn nữa... tim tôi loạn rồi.", voiceUrl: "" }, { kisses: 20, text: "Em là của tôi. Mãi mãi.", voiceUrl: "" }],
+    musicUrl: "", commentStyle: { enabled: true, color: "#c084fc", glowColor: "#c084fc", opacity: 0.85, speed: "normal", fontSize: 10 }
+  },
+  { id: "char_manh_truong_vu", name: "Mạnh Trường Vũ", creator: "Admin what the fắc!?", badge: "NEW", isLocked: false,
+    gallery: ["https://i.ibb.co/1fskRDxw/Kh-ng-C-Ti-u-1073-20260912001040.png"],
+    description: "Gã võ sĩ MMA mỏ hỗn, gửi nhầm clip nhạy cảm cho bạn thân.",
+    plot: "Mạnh Trường Vũ - gã võ sĩ MMA mỏ hỗn, cục súc, chuẩn redflag. Đêm đó hắn gửi nhầm clip ⚡ cực nóng sang máy bạn và chỉ 10 phút sau đã đứng đập cửa phòng bạn...",
+    censorWords: "clip ⚡, cực nóng, redflag",
+    tags: ["Hiện đại", "18+", "Redflag", "Võ sĩ MMA"],
+    hasBL: false, hasBG: true, linkBL: "", linkBG: "https://aistudio.google.com/",
+    views: 0, likes: 0, kisses: 0, topKisser: "",
+    dialogues: [{ kisses: 10, text: "Nhóc gan lắm dám hôn tôi 10 lần?", voiceUrl: "" }, { kisses: 20, text: "Được, tôi chịu trách nhiệm với nhóc.", voiceUrl: "" }],
+    musicUrl: "", commentStyle: { enabled: true, color: "#f87171", glowColor: "#ef4444", opacity: 0.9, speed: "normal", fontSize: 10 }
+  },
+  { id: "char_luu_lac_nhien", name: "Lưu Lạc Nhiên", creator: "RAU MUỐNG", badge: "RCM", isLocked: true,
+    gallery: ["https://i.ibb.co/1GjPTrJ0/Kh-ng-C-Ti-u-1059-20260907195930.png"],
+    description: "Con trai trùm Yakuza. Bạo lực ngoài giang hồ nhưng dịu dàng với bạn.",
+    plot: "Hắn là thiếu gia hắc bang khét tiếng, sẵn sàng đổ máu nhưng trước mặt bạn luôn thu lại móng vuốt để được yêu thương.",
+    censorWords: "đổ máu, bạo lực",
+    tags: ["18+", "Blackflag", "Yakuza", "Hắc Bang"],
+    hasBL: false, hasBG: false, linkBL: "", linkBG: "",
+    views: 0, likes: 0, kisses: 0, topKisser: "",
+    dialogues: [{ kisses: 10, text: "Em hôn tôi... chẳng lẽ em cũng thích tôi?", voiceUrl: "" }, { kisses: 20, text: "Từ nay em là của Lưu Lạc Nhiên tôi. Ai chạm vào, tôi giết.", voiceUrl: "" }],
+    musicUrl: "", commentStyle: { enabled: true, color: "#fbbf24", glowColor: "#f59e0b", opacity: 0.9, speed: "slow", fontSize: 11 }
+  }
+];
+
+const STORAGE_KEY = "raumuong_chars_v26";
+const USER_STORAGE_KEY = "raumuong_user_v26";
+const ACCOUNTS_STORAGE_KEY = "raumuong_accounts_v26";
+const LETTERS_STORAGE_KEY = "raumuong_letters_v26";
+const LIKES_STORAGE_KEY = "raumuong_likes_v26";
+const PLAYLIST_STORAGE_KEY = "raumuong_playlist_v26";
+const NOTICE_STORAGE_KEY = "raumuong_notice_v26";
+const GUIDE_STORAGE_KEY = "raumuong_guide_v26";
+const CHAT_STORAGE_KEY = "raumuong_chat_v26";
+const COMMENTS_STORAGE_KEY = "raumuong_comments_v26";
+const STATS_STORAGE_KEY = "raumuong_stats_v26";
+const DAILY_STATS_STORAGE_KEY = "raumuong_daily_stats_v26";
+const SETTINGS_STORAGE_KEY = "raumuong_settings_v26";
+const DEVICE_ID_KEY = "raumuong_device_id_v26";
+const DEVICE_ACCOUNTS_KEY = "raumuong_device_accounts_v26";
+
+function safeParse(str) { try { return str ? JSON.parse(str) : null; } catch { return null; } }
+function escapeHtml(str) { if (str === null || str === undefined) return ''; return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+function escapeRegex(str) { return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function isVideoUrl(url) { return url ? /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(url) : false; }
+function todayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function getDeviceId() { let id = localStorage.getItem(DEVICE_ID_KEY); if (!id) { id = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 12); localStorage.setItem(DEVICE_ID_KEY, id); } return id; }
+function getDeviceAccounts() { return safeParse(localStorage.getItem(DEVICE_ACCOUNTS_KEY)) || {}; }
+function saveDeviceAccounts(map) { localStorage.setItem(DEVICE_ACCOUNTS_KEY, JSON.stringify(map)); }
+
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${escapeHtml(message)}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.classList.add('toast-out'); setTimeout(() => toast.remove(), 300); }, duration);
+}
+
+function isAdminUser() { return currentUser && currentUser.role === 'admin'; }
+function is18PlusUser() { return currentUser && currentUser.age >= 18; }
+function hasTag18(char) { return (char.tags || []).some(t => t === '18+' || t === 'NSFW'); }
+function hasBlackflag(char) { return (char.tags || []).some(t => t.toLowerCase() === 'blackflag'); }
+
+let characterList = safeParse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_CHARACTERS.map(c => ({...c}));
+let currentUser = safeParse(localStorage.getItem(USER_STORAGE_KEY)) || null;
+let registeredAccounts = safeParse(localStorage.getItem(ACCOUNTS_STORAGE_KEY)) || [];
+let adminLetters = safeParse(localStorage.getItem(LETTERS_STORAGE_KEY)) || [];
+let userLikes = safeParse(localStorage.getItem(LIKES_STORAGE_KEY)) || {};
+let musicPlaylist = safeParse(localStorage.getItem(PLAYLIST_STORAGE_KEY)) || DEFAULT_PLAYLIST;
+let currentNotice = safeParse(localStorage.getItem(NOTICE_STORAGE_KEY)) || DEFAULT_NOTICE;
+let currentGuide = safeParse(localStorage.getItem(GUIDE_STORAGE_KEY)) || DEFAULT_GUIDE;
+let chatMessages = safeParse(localStorage.getItem(CHAT_STORAGE_KEY)) || [];
+let allComments = safeParse(localStorage.getItem(COMMENTS_STORAGE_KEY)) || {};
+let userStats = safeParse(localStorage.getItem(STATS_STORAGE_KEY)) || {};
+let dailyStats = safeParse(localStorage.getItem(DAILY_STATS_STORAGE_KEY)) || {};
+let appSettings = safeParse(localStorage.getItem(SETTINGS_STORAGE_KEY)) || { dailyRankPopup: true, allowRegister: true };
+
+let currentSongIndex = 0;
+let charActiveImageIndex = {};
+let currentPlotChar = null;
+let currentPlotImgIndex = 0;
+let isAdminLoggedIn = false;
+let currentFilterTag = "Tất cả";
+let currentSearchQuery = "";
+let isHonorMarqueeHidden = false;
+let isCommentFloatHidden = false;
+let isMusicPlaying = false;
+let currentCommentCharId = null;
+let replyToChatId = null;
+let replyToCommentId = null;
+let pendingAgeConfirmCharId = null;
+let currentRankTab = 'players';
+let currentGuideImgIdx = 0;
+let currentDialogueRows = [];
+
+characterList.forEach(c => {
+  if (!Array.isArray(c.gallery) || c.gallery.length === 0) c.gallery = ["https://placehold.co/400x500/120d22/b57edc?text=RAU+MUONG"];
+  if (typeof c.kisses !== 'number') c.kisses = 0;
+  if (typeof c.likes !== 'number') c.likes = 0;
+  if (typeof c.views !== 'number') c.views = 0;
+  if (!c.topKisser) c.topKisser = "";
+  if (!c.musicUrl) c.musicUrl = "";
+  if (typeof c.hasBL !== 'boolean') c.hasBL = !!c.linkBL;
+  if (typeof c.hasBG !== 'boolean') c.hasBG = !!c.linkBG;
+  if (!c.linkBL) c.linkBL = "";
+  if (!c.linkBG) c.linkBG = "";
+  if (!Array.isArray(c.dialogues)) { c.dialogues = []; if (c.dialogue10) c.dialogues.push({ kisses: 10, text: c.dialogue10, voiceUrl: "" }); if (c.dialogue20) c.dialogues.push({ kisses: 20, text: c.dialogue20, voiceUrl: "" }); }
+  if (!c.commentStyle) c.commentStyle = { enabled: true, color: "#c084fc", glowColor: "#c084fc", opacity: 0.85, speed: "normal", fontSize: 10 };
+  if (!allComments[c.id]) allComments[c.id] = [];
+  if (!userStats[c.id]) userStats[c.id] = {};
+});
+if (!Array.isArray(currentGuide.images)) currentGuide.images = currentGuide.imageUrl ? [currentGuide.imageUrl] : [];
+
+/* ============================================================
+   ☁️ FIREBASE REALTIME SYNC
+   ============================================================ */
+let db = null, cloudEnabled = false, cloudRef = null, isSyncingFromCloud = false, cloudPushTimer = null, lastCloudSnapshot = '', cloudStatus = 'offline';
+
+function updateSyncBadge() {
+  const badge = document.getElementById('syncBadge'); const text = document.getElementById('syncBadgeText');
+  if (!badge || !text) return;
+  badge.className = 'sync-badge ' + (cloudStatus === 'online' ? 'sync-online' : cloudStatus === 'syncing' ? 'sync-syncing' : 'sync-offline');
+  if (cloudStatus === 'online') { badge.querySelector('i').className = 'fa-solid fa-cloud text-[8px]'; text.innerText = 'Cloud Live'; }
+  else if (cloudStatus === 'syncing') { badge.querySelector('i').className = 'fa-solid fa-cloud-arrow-up text-[8px]'; text.innerText = 'Đang sync...'; }
+  else { badge.querySelector('i').className = 'fa-solid fa-cloud-slash text-[8px]'; text.innerText = 'Local'; }
+  const cloudStatusEl = document.getElementById('cloudStatusText');
+  if (cloudStatusEl) cloudStatusEl.innerText = cloudEnabled ? `✅ Đã kết nối Firebase (${cloudStatus})` : "❌ Chưa kết nối (chỉ Local)";
+}
+
+function initCloud() {
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    cloudRef = db.ref(CLOUD_PATH);
+    cloudEnabled = true;
+    cloudStatus = 'syncing';
+    updateSyncBadge();
+
+    cloudRef.on('value', snapshot => {
+      const data = snapshot.val();
+      if (!data) {
+        cloudStatus = 'online';
+        updateSyncBadge();
+        setTimeout(() => pushAllToCloud(false), 300);
+        return;
+      }
+      const hash = JSON.stringify(data);
+      if (hash === lastCloudSnapshot) return;
+      lastCloudSnapshot = hash;
+      mergeFromCloud(data);
+      cloudStatus = 'online';
+      updateSyncBadge();
+    }, err => {
+      console.warn('[RAU MUỐNG] Cloud read error:', err);
+      cloudStatus = 'offline';
+      updateSyncBadge();
+    });
+
+    console.log('[RAU MUỐNG] ☁️ Firebase Realtime enabled');
+    showToast('☁️ Đã kết nối Firebase - Dữ liệu sync realtime!', 'success', 3500);
+  } catch (err) {
+    console.error('Firebase init error:', err);
+    cloudEnabled = false;
+    cloudStatus = 'offline';
+    updateSyncBadge();
+  }
+}
+
+function mergeFromCloud(data) {
+  isSyncingFromCloud = true;
+  try {
+    if (data.characters) {
+      const cloudChars = Object.values(data.characters);
+      if (cloudChars.length > 0) {
+        characterList = cloudChars;
+        characterList.forEach(c => {
+          if (!Array.isArray(c.gallery) || c.gallery.length === 0) c.gallery = ["https://placehold.co/400x500/120d22/b57edc?text=RAU+MUONG"];
+          if (!c.commentStyle) c.commentStyle = { enabled: true, color: "#c084fc", glowColor: "#c084fc", opacity: 0.85, speed: "normal", fontSize: 10 };
+          if (!Array.isArray(c.dialogues)) c.dialogues = [];
+          if (typeof c.kisses !== 'number') c.kisses = 0;
+          if (typeof c.likes !== 'number') c.likes = 0;
+          if (typeof c.views !== 'number') c.views = 0;
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(characterList));
+      }
+    }
+    if (data.notice) { currentNotice = data.notice; localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(currentNotice)); }
+    if (data.guide) { currentGuide = data.guide; if (!Array.isArray(currentGuide.images)) currentGuide.images = []; localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(currentGuide)); }
+    if (data.comments) { allComments = data.comments; localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(allComments)); }
+    if (data.userLikes) { userLikes = data.userLikes; localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(userLikes)); }
+    if (data.stats) { userStats = data.stats; localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(userStats)); }
+    if (data.dailyStats) { dailyStats = data.dailyStats; localStorage.setItem(DAILY_STATS_STORAGE_KEY, JSON.stringify(dailyStats)); }
+    if (data.letters) { adminLetters = Array.isArray(data.letters) ? data.letters : Object.values(data.letters); localStorage.setItem(LETTERS_STORAGE_KEY, JSON.stringify(adminLetters)); }
+    if (data.chat) { chatMessages = Array.isArray(data.chat) ? data.chat : Object.values(data.chat); localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatMessages)); }
+    if (data.accounts) {
+      const cloudAccs = Object.values(data.accounts);
+      const merged = [...cloudAccs];
+      registeredAccounts.forEach(local => { if (!merged.find(a => a.username === local.username)) merged.push(local); });
+      registeredAccounts = merged;
+      localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(registeredAccounts));
+    }
+    if (data.settings) { appSettings = data.settings; localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(appSettings)); }
+    if (data.playlist && Array.isArray(data.playlist) && data.playlist.length > 0) {
+      musicPlaylist = data.playlist;
+      localStorage.setItem(PLAYLIST_STORAGE_KEY, JSON.stringify(musicPlaylist));
+      updateMusicDisplay();
+    }
+
+    renderCharacters();
+    renderPresetTagButtons();
+    renderChat();
+    if (typeof renderAdminCharManageList === 'function' && document.getElementById('adminModal') && !document.getElementById('adminModal').classList.contains('hidden')) {
+      renderAdminCharManageList(); renderAdminLetters(); renderAdminMusicList(); renderAdminCommentCharSelect();
+    }
+    checkUserBirthday();
+    const noticeContent = document.getElementById('noticeDisplayContent');
+    if (noticeContent && !document.getElementById('announcementModal').classList.contains('hidden')) {
+      document.getElementById('noticeDisplayTitle').innerText = currentNotice.title || DEFAULT_NOTICE.title;
+      document.getElementById('noticeDisplayContent').innerText = currentNotice.content || DEFAULT_NOTICE.content;
+    }
+  } catch (err) { console.error('Merge error:', err); }
+  isSyncingFromCloud = false;
+}
+
+function pushAllToCloud(showToastNoti = true) {
+  if (!cloudEnabled || !cloudRef) { if (showToastNoti) showToast("Firebase chưa kết nối!", "warning"); return; }
+  cloudStatus = 'syncing'; updateSyncBadge();
+  const charsMap = {}; characterList.forEach(c => charsMap[c.id] = c);
+  const accsMap = {}; registeredAccounts.forEach(a => accsMap[a.username] = a);
+  const lettersMap = {}; adminLetters.forEach((l, i) => lettersMap[l.id || ('l_' + i)] = l);
+  const chatMap = {}; chatMessages.forEach((m, i) => chatMap[m.id || ('m_' + i)] = m);
+  isSyncingFromCloud = true;
+  cloudRef.set({
+    characters: charsMap, accounts: accsMap, letters: lettersMap, chat: chatMap,
+    notice: currentNotice, guide: currentGuide, comments: allComments,
+    userLikes: userLikes, stats: userStats, dailyStats: dailyStats,
+    playlist: musicPlaylist, settings: appSettings, lastUpdate: Date.now()
+  }).then(() => {
+    cloudStatus = 'online'; updateSyncBadge();
+    lastCloudSnapshot = '';
+    setTimeout(() => { isSyncingFromCloud = false; }, 500);
+    if (showToastNoti) showToast("Đã push toàn bộ dữ liệu lên Firebase ☁️", "success");
+  }).catch(err => {
+    console.error('Push error:', err);
+    cloudStatus = 'offline'; updateSyncBadge();
+    isSyncingFromCloud = false;
+    if (showToastNoti) showToast("Push thất bại: " + err.message, "error");
+  });
+}
+
+function pullAllFromCloud() {
+  if (!cloudEnabled || !cloudRef) { showToast("Firebase chưa kết nối!", "warning"); return; }
+  cloudStatus = 'syncing'; updateSyncBadge();
+  cloudRef.once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (!data) { showToast("Cloud trống!", "info"); cloudStatus = 'online'; updateSyncBadge(); return; }
+    lastCloudSnapshot = '';
+    mergeFromCloud(data);
+    cloudStatus = 'online'; updateSyncBadge();
+    showToast("Đã kéo dữ liệu từ Firebase về ⬇️", "success");
+  }).catch(err => {
+    console.error('Pull error:', err);
+    cloudStatus = 'offline'; updateSyncBadge();
+    showToast("Pull thất bại: " + err.message, "error");
+  });
+}
+
+function pushKeyToCloud(key, value, debounce = 400) {
+  if (!cloudEnabled || !cloudRef) return;
+  cloudStatus = 'syncing'; updateSyncBadge();
+  if (cloudPushTimer) clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(() => {
+    cloudRef.child(key).set(value).then(() => {
+      cloudStatus = 'online'; updateSyncBadge();
+    }).catch(err => {
+      console.error('Push key error:', err);
+      cloudStatus = 'offline'; updateSyncBadge();
+    });
+  }, debounce);
+}
+
+function saveCharacters() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(characterList));
+  if (cloudEnabled && !isSyncingFromCloud) { const m = {}; characterList.forEach(c => m[c.id] = c); pushKeyToCloud('characters', m, 500); }
+}
+function saveComments() {
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(allComments));
+  if (cloudEnabled && !isSyncingFromCloud) pushKeyToCloud('comments', allComments, 500);
+}
+function saveStats() {
+  localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(userStats));
+  if (cloudEnabled && !isSyncingFromCloud) pushKeyToCloud('stats', userStats, 800);
+}
+function saveDailyStats() {
+  localStorage.setItem(DAILY_STATS_STORAGE_KEY, JSON.stringify(dailyStats));
+  if (cloudEnabled && !isSyncingFromCloud) pushKeyToCloud('dailyStats', dailyStats, 800);
+}
+function saveAppSettings() {
+  localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(appSettings));
+  if (cloudEnabled && !isSyncingFromCloud) pushKeyToCloud('settings', appSettings, 400);
+}
+function saveNotice() {
+  localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(currentNotice));
+  if (cloudEnabled && !isSyncingFromCloud) pushKeyToCloud('notice', currentNotice, 400);
+}
+function saveGuide() {
+  localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(currentGuide));
+  if (cloudEnabled && !isSyncingFromCloud) pushKeyToCloud('guide', currentGuide, 400);
+}
+function saveUserLikes() {
+  localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(userLikes));
+  if (cloudEnabled && !isSyncingFromCloud) pushKeyToCloud('userLikes', userLikes, 300);
+}
+function saveLetters() {
+  localStorage.setItem(LETTERS_STORAGE_KEY, JSON.stringify(adminLetters));
+  if (cloudEnabled && !isSyncingFromCloud) { const m = {}; adminLetters.forEach((l, i) => m[l.id || ('l_' + i)] = l); pushKeyToCloud('letters', m, 500); }
+}
+function saveChat() {
+  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatMessages));
+  if (cloudEnabled && !isSyncingFromCloud) { const m = {}; chatMessages.forEach((mm, i) => m[mm.id || ('m_' + i)] = mm); pushKeyToCloud('chat', m, 500); }
+}
+function saveAccounts() {
+  localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(registeredAccounts));
+  if (cloudEnabled && !isSyncingFromCloud) { const m = {}; registeredAccounts.forEach(a => m[a.username] = a); pushKeyToCloud('accounts', m, 500); }
+}
+function savePlaylist() {
+  localStorage.setItem(PLAYLIST_STORAGE_KEY, JSON.stringify(musicPlaylist));
+  if (cloudEnabled && !isSyncingFromCloud) pushKeyToCloud('playlist', musicPlaylist, 400);
+}
+
+/* ===== CANVAS ===== */
+const canvas = document.getElementById('nightSkyCanvas');
+const ctx = canvas.getContext('2d');
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+let stars = [], lavenderPetals = [], lavenderPlants = [], fireflies = [];
+
+window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; initCanvasParticles(); });
+
+function initCanvasParticles() {
+  stars = []; lavenderPetals = []; lavenderPlants = []; fireflies = [];
+  const isMobile = window.innerWidth < 640;
+  const starCount = isMobile ? 70 : 110;
+  const petalCount = isMobile ? 45 : 70;
+  const fireflyCount = isMobile ? 15 : 25;
+  for (let i = 0; i < starCount; i++) stars.push({ x: Math.random() * width, y: Math.random() * height, radius: Math.random() * 1.8 + 0.6, alpha: Math.random() * 0.8 + 0.2, twinkleSpeed: Math.random() * 0.03 + 0.01, color: Math.random() > 0.4 ? '#ffffff' : '#e9d5ff' });
+  for (let i = 0; i < petalCount; i++) lavenderPetals.push({ x: Math.random() * width, y: Math.random() * height, length: Math.random() * 8 + 5, width: Math.random() * 4 + 2, speedY: Math.random() * 0.7 + 0.3, speedX: Math.random() * 0.8 - 0.4, angle: Math.random() * Math.PI * 2, spin: Math.random() * 0.03 - 0.015, alpha: Math.random() * 0.6 + 0.35, color: Math.random() > 0.5 ? '181, 126, 220' : '192, 132, 252' });
+  for (let i = 0; i < fireflyCount; i++) fireflies.push({ x: Math.random() * width, y: Math.random() * height, radius: Math.random() * 2 + 1.2, alpha: Math.random() * 0.5 + 0.5, pulse: Math.random() * 0.03 + 0.015, phase: Math.random() * Math.PI * 2, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, color: Math.random() > 0.5 ? '#e9d5ff' : '#fef3c7' });
+  const plantCount = Math.floor(width / 65);
+  for (let i = 0; i < plantCount; i++) lavenderPlants.push({ x: (i / plantCount) * width + (Math.random() * 20 - 10), y: height + 10, stalkHeight: Math.random() * 70 + 80, swayOffset: Math.random() * Math.PI * 2, floretCount: Math.floor(Math.random() * 6 + 7) });
+}
+initCanvasParticles();
+
+let animTime = 0;
+function animateNightSky() {
+  ctx.clearRect(0, 0, width, height); animTime += 0.02;
+  stars.forEach(s => { s.alpha += s.twinkleSpeed; if (s.alpha > 1 || s.alpha < 0.2) s.twinkleSpeed = -s.twinkleSpeed; ctx.save(); ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2); ctx.fillStyle = s.color; ctx.globalAlpha = Math.max(0.1, Math.min(1, s.alpha)); ctx.shadowBlur = 10; ctx.shadowColor = s.color; ctx.fill(); ctx.restore(); });
+  lavenderPlants.forEach(plant => {
+    const sway = Math.sin(animTime + plant.swayOffset) * 14; const tipX = plant.x + sway; const tipY = plant.y - plant.stalkHeight;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(plant.x, plant.y); ctx.quadraticCurveTo(plant.x + sway * 0.4, plant.y - plant.stalkHeight * 0.5, tipX, tipY); ctx.strokeStyle = "rgba(100, 60, 130, 0.45)"; ctx.lineWidth = 1.8; ctx.stroke();
+    for (let j = 0; j < plant.floretCount; j++) {
+      const ratio = j / plant.floretCount; const floretY = tipY + ratio * 34; const floretX = tipX - (sway * ratio * 0.25); const spread = (Math.sin(j * 1.5) * 5);
+      ctx.beginPath(); ctx.ellipse(floretX + spread, floretY, 2.4, 4.6, 0.25, 0, Math.PI * 2); ctx.fillStyle = (j % 2 === 0) ? "rgba(181, 126, 220, 0.75)" : "rgba(192, 132, 252, 0.95)"; ctx.shadowBlur = 8; ctx.shadowColor = "rgba(181, 126, 220, 0.7)"; ctx.fill();
+    }
+    ctx.restore();
+  });
+  lavenderPetals.forEach(p => { p.y += p.speedY; p.x += Math.sin(p.angle) * 0.7 + p.speedX; p.angle += p.spin; if (p.y > height + 20) { p.y = -20; p.x = Math.random() * width; } if (p.x > width + 20) p.x = -20; if (p.x < -20) p.x = width + 20; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.beginPath(); ctx.ellipse(0, 0, p.width, p.length, 0, 0, Math.PI * 2); ctx.fillStyle = `rgba(${p.color}, ${p.alpha})`; ctx.shadowBlur = 10; ctx.shadowColor = `rgba(192, 132, 252, 0.7)`; ctx.fill(); ctx.restore(); });
+  fireflies.forEach(f => { f.phase += f.pulse; const pulse = Math.sin(f.phase) * 0.5 + 0.5; f.x += f.vx + Math.sin(f.phase * 0.5) * 0.3; f.y += f.vy + Math.cos(f.phase * 0.7) * 0.3; if (f.x < -10) f.x = width + 10; if (f.x > width + 10) f.x = -10; if (f.y < -10) f.y = height + 10; if (f.y > height + 10) f.y = -10; ctx.save(); ctx.beginPath(); ctx.arc(f.x, f.y, f.radius * (0.8 + pulse * 0.5), 0, Math.PI * 2); ctx.fillStyle = f.color; ctx.globalAlpha = f.alpha * (0.4 + pulse * 0.6); ctx.shadowBlur = 18; ctx.shadowColor = f.color; ctx.fill(); ctx.restore(); });
+  requestAnimationFrame(animateNightSky);
+}
+animateNightSky();
+
+let lastTouchRipple = 0;
+document.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('button, input, select, textarea, a, label, video')) return;
+  const now = Date.now(); if (now - lastTouchRipple < 60) return; lastTouchRipple = now;
+  const rip = document.createElement('div'); rip.className = 'touch-ripple'; rip.style.left = `${e.clientX}px`; rip.style.top = `${e.clientY}px`; rip.style.width = '40px'; rip.style.height = '40px'; document.body.appendChild(rip); setTimeout(() => rip.remove(), 450);
+  for (let i = 0; i < 7; i++) { const flake = document.createElement('div'); flake.className = 'snowflake-burst'; flake.innerText = Math.random() > 0.5 ? '❄' : '✦'; flake.style.left = `${e.clientX}px`; flake.style.top = `${e.clientY}px`; flake.style.fontSize = `${Math.floor(Math.random() * 6 + 11)}px`; const angle = (Math.PI * 2 / 7) * i + (Math.random() * 0.4 - 0.2); const distance = Math.random() * 40 + 25; flake.style.setProperty('--tx', `${Math.cos(angle) * distance}px`); flake.style.setProperty('--ty', `${Math.sin(angle) * distance}px`); flake.style.setProperty('--tr', `${Math.floor(Math.random() * 360 - 180)}deg`); document.body.appendChild(flake); setTimeout(() => flake.remove(), 650); }
+}, { passive: true });
+
+let dialogueTimer = null;
+function showDialoguePopup(char, text) { if (!text) return; const popup = document.getElementById('dialoguePopup'); document.getElementById('dialogueText').innerText = text; document.getElementById('dialogueChar').innerText = `— ${char.name}`; popup.classList.add('show'); if (dialogueTimer) clearTimeout(dialogueTimer); dialogueTimer = setTimeout(() => popup.classList.remove('show'), 4000); }
+
+function trackStat(charId, field) {
+  if (!currentUser) return;
+  const key = `${currentUser.username}_${charId}`;
+  if (!userStats[key]) userStats[key] = { kisses: 0, likes: 0, comments: 0, plays: 0 };
+  if (userStats[key][field] !== undefined) userStats[key][field]++;
+  saveStats();
+  const dk = todayKey();
+  if (!dailyStats[dk]) dailyStats[dk] = {};
+  if (!dailyStats[dk][key]) dailyStats[dk][key] = { kisses: 0, likes: 0, comments: 0, plays: 0, username: currentUser.username, charId };
+  dailyStats[dk][key][field]++;
+  dailyStats[dk][key].username = currentUser.username;
+  dailyStats[dk][key].charId = charId;
+  saveDailyStats();
+}
+
+let kissCooldown = {};
+function handleKissCharacter(charId, e) {
+  e.stopPropagation();
+  if (!currentUser) return showToast("Vui lòng đăng nhập để trao nụ hôn!", "warning");
+  const now = Date.now();
+  if (kissCooldown[charId] && now - kissCooldown[charId] < 120) return;
+  kissCooldown[charId] = now;
+  const char = characterList.find(c => c.id === charId);
+  if (!char) return;
+  char.kisses = (char.kisses || 0) + 1;
+  char.topKisser = currentUser.username;
+  const kissEl = document.getElementById(`kiss_count_${charId}`);
+  if (kissEl) kissEl.innerText = char.kisses;
+  trackStat(charId, 'kisses');
+  const rect = e.currentTarget.getBoundingClientRect(); const posX = rect.left + rect.width / 2; const posY = rect.top;
+  for (let i = 0; i < 2; i++) { const bubble = document.createElement('div'); bubble.className = 'kiss-bubble'; bubble.innerText = ['💋', '😘', '💖', '🫧'][Math.floor(Math.random() * 4)]; bubble.style.left = `${posX + (Math.random() * 20 - 10)}px`; bubble.style.top = `${posY}px`; document.body.appendChild(bubble); setTimeout(() => bubble.remove(), 850); }
+  saveCharacters();
+  const milestones = char.dialogues || []; const hit = milestones.find(d => Number(d.kisses) === char.kisses);
+  if (hit) { if (hit.text) showDialoguePopup(char, hit.text); if (hit.voiceUrl) playVoice(hit.voiceUrl); if (char.kisses >= 20) renderCharacters(); }
+}
+
+function playVoice(url) { try { const vp = document.getElementById('voicePlayer'); vp.src = url; vp.play().catch(() => {}); } catch (err) {} }
+function toggleHonorMarqueeGlobal() { isHonorMarqueeHidden = !isHonorMarqueeHidden; document.getElementById("honorToggleText").innerText = isHonorMarqueeHidden ? "Hiện Chạy Chữ" : "Ẩn Chạy Chữ"; renderCharacters(); }
+function toggleCommentsFloatGlobal() { isCommentFloatHidden = !isCommentFloatHidden; document.getElementById("commentFloatToggleText").innerText = isCommentFloatHidden ? "Hiện Comment Bay" : "Ẩn Comment Bay"; renderCharacters(); }
+
+function openAgeConfirm(charId) {
+  pendingAgeConfirmCharId = charId;
+  const char = characterList.find(c => c.id === charId);
+  const hasBlack = hasBlackflag(char); const has18 = hasTag18(char);
+  const inner = document.getElementById('ageConfirmInner'); const icon = document.getElementById('ageConfirmIcon'); const title = document.getElementById('ageConfirmTitle'); const text = document.getElementById('ageConfirmText');
+  if (hasBlack) { inner.classList.add('blackflag-warning'); icon.innerText = '⛔'; title.innerText = 'CẢNH BÁO NGHIÊM TRỌNG'; text.innerText = `Nhân vật "${char.name}" có tag BLACKFLAG - chứa nội dung CỰC KỲ ĐEN TỐI, có thể bao gồm: bạo lực, giam cầm, tâm lý nặng nề, chiếm hữu cực đoan, các hành vi nguy hiểm.\n\n⚠️ KHÔNG phù hợp với người nhạy cảm, người dưới 18 tuổi, hoặc người không thoải mái với nội dung dark.\n\nBạn có THỰC SỰ chắc chắn muốn tiếp tục không?`; }
+  else if (has18) { inner.classList.remove('blackflag-warning'); icon.innerText = '🔞'; title.innerText = 'XÁC NHẬN ĐỘ TUỔI 18+'; text.innerText = `Nhân vật "${char.name}" chứa nội dung dành cho người TRÊN 18 TUỔI.\n\nVui lòng xác nhận bạn đã đủ 18 tuổi và chấp nhận nội dung nhạy cảm này.`; }
+  document.getElementById('ageConfirmModal').classList.remove('hidden');
+}
+function confirmAgeYes() { document.getElementById('ageConfirmModal').classList.add('hidden'); if (pendingAgeConfirmCharId) { const char = characterList.find(c => c.id === pendingAgeConfirmCharId); if (char) selectCharAction(char); } pendingAgeConfirmCharId = null; }
+function confirmAgeNo() { document.getElementById('ageConfirmModal').classList.add('hidden'); pendingAgeConfirmCharId = null; showToast("Đã hủy. Hãy cân nhắc trước khi xem nội dung nhạy cảm!", "info"); }
+
+function selectCharAction(char) {
+  if (char.isLocked) return showToast("Nhân vật này đang tạm khóa!", "warning");
+  const hasBL = char.hasBL && char.linkBL && char.linkBL.trim(); const hasBG = char.hasBG && char.linkBG && char.linkBG.trim();
+  if (hasBL && hasBG) {
+    const choice = prompt(`Nhân vật "${char.name}" có 2 chế độ:\n\n1. BL (Nam × Nam)\n2. BG (Nam × Nữ)\n\nNhập 1 hoặc 2 để chọn:`);
+    if (choice === '1') { char.views = (char.views || 0) + 1; trackStat(char.id, 'plays'); saveCharacters(); window.open(char.linkBL, "_blank", "noopener,noreferrer"); }
+    else if (choice === '2') { char.views = (char.views || 0) + 1; trackStat(char.id, 'plays'); saveCharacters(); window.open(char.linkBG, "_blank", "noopener,noreferrer"); }
+    else showToast("Đã hủy chọn", "info");
+  } else if (hasBL) { char.views = (char.views || 0) + 1; trackStat(char.id, 'plays'); saveCharacters(); window.open(char.linkBL, "_blank", "noopener,noreferrer"); }
+  else if (hasBG) { char.views = (char.views || 0) + 1; trackStat(char.id, 'plays'); saveCharacters(); window.open(char.linkBG, "_blank", "noopener,noreferrer"); }
+  else { showToast("Nhân vật này chưa được gắn link!", "warning"); }
+}
+function handleSelectCharacter(charId) {
+  const char = characterList.find(c => c.id === charId); if (!char) return;
+  if (char.isLocked) return showToast("Nhân vật này đang tạm khóa!", "warning");
+  if (hasBlackflag(char) || hasTag18(char)) { if (hasBlackflag(char)) { openAgeConfirm(charId); return; } if (is18PlusUser()) selectCharAction(char); else openAgeConfirm(charId); }
+  else selectCharAction(char);
+}
+
+function getCommentStyle(char) { return char.commentStyle || { enabled: true, color: "#c084fc", glowColor: "#c084fc", opacity: 0.85, speed: "normal", fontSize: 10 }; }
+function getCommentDuration(speed) { if (speed === 'slow') return '20s'; if (speed === 'fast') return '8s'; return '14s'; }
+
+function generateFloatingCommentsHTML(char) {
+  if (isCommentFloatHidden) return '';
+  const style = getCommentStyle(char);
+  if (!style.enabled) return '';
+  const comments = allComments[char.id] || [];
+  if (comments.length === 0) return '';
+  const shuffled = [...comments].sort(() => Math.random() - 0.5).slice(0, 6);
+  const duration = getCommentDuration(style.speed); const fontSize = style.fontSize || 10;
+  return `<div class="comment-float-wrapper">${shuffled.map((c, i) => {
+    const text = `💬 ${c.author}: ${(c.text || '').substring(0, 30)}${(c.text || '').length > 30 ? '...' : ''}`;
+    const direction = i % 2 === 0 ? 'drift-right' : 'drift-left';
+    const topPos = 5 + (i * 15) % 75;
+    const delay = (Math.random() * 8).toFixed(2);
+    const dur = (parseFloat(duration) + (Math.random() * 4 - 2)).toFixed(1) + 's';
+    return `<div class="comment-float-item ${direction}" style="top:${topPos}%; --dur:${dur}s; animation-delay:-${delay}s; color:${style.color}; opacity:${style.opacity}; font-size:${fontSize}px; text-shadow: 0 0 6px ${style.glowColor}, 0 0 14px ${style.glowColor}, 0 0 22px ${style.glowColor};">${escapeHtml(text)}</div>`;
+  }).join('')}</div>`;
+}
+
+function renderCharacters() {
+  const container = document.getElementById("characterContainer");
+  const emptyView = document.getElementById("emptyView");
+  const filtered = characterList.filter(char => {
+    if (hasTag18(char) && currentUser && currentUser.age < 18 && currentUser.role !== 'admin') return false;
+    const matchTag = currentFilterTag === "Tất cả" || (char.tags && char.tags.includes(currentFilterTag));
+    const q = currentSearchQuery.toLowerCase().trim();
+    const matchQ = !q || char.name.toLowerCase().includes(q) || (char.creator && char.creator.toLowerCase().includes(q)) || (char.tags && char.tags.some(t => t.toLowerCase().includes(q)));
+    return matchTag && matchQ;
+  });
+  if (filtered.length === 0) { container.innerHTML = ""; emptyView.classList.remove("hidden"); return; }
+  emptyView.classList.add("hidden");
+  container.innerHTML = filtered.map(char => {
+    const gallery = char.gallery && char.gallery.length ? char.gallery : ["https://placehold.co/400x500/120d22/b57edc?text=RAU+MUONG"];
+    if (charActiveImageIndex[char.id] === undefined) charActiveImageIndex[char.id] = 0;
+    const activeImgIdx = charActiveImageIndex[char.id] % gallery.length; const currentMedia = gallery[activeImgIdx]; const hasMultiple = gallery.length > 1;
+    const likeKey = `${currentUser ? currentUser.username : 'guest'}_${char.id}`; const isLiked = userLikes[likeKey] === true;
+    const is20PlusKisses = (char.kisses || 0) >= 20; const commentCount = (allComments[char.id] || []).length; const isVideo = isVideoUrl(currentMedia);
+    const mediaTag = isVideo ? `<video id="cardImg_${char.id}" src="${escapeHtml(currentMedia)}" class="char-media select-none" controls autoplay muted loop playsinline></video>` : `<img id="cardImg_${char.id}" src="${escapeHtml(currentMedia)}" alt="${escapeHtml(char.name)}" onerror="this.src='https://placehold.co/400x500/120d22/b57edc?text=RAU+MUONG'" class="w-auto h-auto max-h-[440px] max-w-full object-contain rounded-2xl shadow-xl select-none" loading="lazy">`;
+    return `
+      <div class="card-custom bg-night-card border border-night-border rounded-3xl overflow-hidden flex flex-col justify-between relative max-w-sm sm:max-w-none mx-auto w-full group">
+        ${(is20PlusKisses && !isHonorMarqueeHidden) ? `<div class="bg-gradient-to-r from-pink-900/90 via-purple-800/90 to-pink-900/90 border-b border-pink-400/40 py-1 px-2 text-[10px] font-bold text-amber-200 overflow-hidden shadow-inner"><div class="marquee-kiss-honor">👑 MOAH MOAH VINH DANH: <strong>${escapeHtml(char.topKisser || 'Bảo bối')}</strong> đã trao hơn ${char.kisses} nụ hôn cho <strong>${escapeHtml(char.name)}</strong>! 💋✨</div></div>` : ''}
+        <div class="w-full flex items-center justify-center bg-black/60 relative p-2 min-h-[220px]">
+          ${generateFloatingCommentsHTML(char)}
+          <div class="absolute top-3 left-3 flex flex-wrap gap-1 z-20">
+            ${char.isLocked ? `<span class="bg-amber-500/90 text-black font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow border border-amber-300">🔒 Khóa</span>` : ''}
+            ${char.badge ? `<span class="bg-red-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-lg border border-red-300 animate-pulse">${char.badge === 'HOT' ? '🔥 HOT' : (char.badge === 'NEW' ? '✨ NEW' : '💖 RCM')}</span>` : ''}
+            ${hasBlackflag(char) ? `<span class="bg-black text-red-400 font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-lg border-2 border-red-500 animate-pulse">⛔ BLACKFLAG</span>` : ''}
+            ${hasTag18(char) ? `<span class="bg-red-900/90 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow border border-red-400">🔞 18+</span>` : ''}
+          </div>
+          ${mediaTag}
+          ${hasMultiple ? `<button onclick="changeCardImage('${char.id}', -1)" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/75 hover:bg-lavender text-white flex items-center justify-center text-xs shadow-lg z-20">‹</button><button onclick="changeCardImage('${char.id}', 1)" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/75 hover:bg-lavender text-white flex items-center justify-center text-xs shadow-lg z-20">›</button><span id="counter_${char.id}" class="absolute top-3 right-3 bg-black/70 backdrop-blur text-purple-200 text-[9px] font-bold px-2 py-0.5 rounded-full border border-white/10 z-20">${activeImgIdx + 1}/${gallery.length}</span>` : ''}
+          <div class="absolute bottom-3 right-3 z-20 flex items-center gap-1.5">
+            <span class="px-2 py-1 rounded-xl bg-black/70 backdrop-blur border border-white/10 text-slate-300 flex items-center gap-1"><i class="fa-regular fa-eye text-xs"></i><span class="text-[10px] font-bold">${char.views || 0}</span></span>
+            <button onclick="toggleLikeCharacter('${char.id}')" class="px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur border border-white/20 hover:border-rose-400 flex items-center gap-1.5 transition active:scale-110 shadow-lg ${isLiked ? 'text-rose-400 font-bold border-rose-500/60' : 'text-slate-300'}"><i class="${isLiked ? 'fa-solid text-rose-500' : 'fa-regular'} fa-heart text-base"></i><span class="text-sm font-bold">${char.likes || 0}</span></button>
+          </div>
+        </div>
+        <div class="p-4 flex flex-col justify-between flex-1 text-center sm:text-left">
+          <div>
+            <div class="flex flex-wrap gap-1 justify-center sm:justify-start mb-2">${(char.tags || []).map(t => `<span class="text-[9px] font-semibold ${t.toLowerCase() === 'blackflag' ? 'text-red-400 bg-red-950/60 border-red-500/40' : 'text-lavender-light bg-purple-950/60 border-lavender/30'} border px-2 py-0.5 rounded-full">#${escapeHtml(t)}</span>`).join("")}</div>
+            <h3 class="text-lg font-bold text-white group-hover:text-lavender transition line-clamp-1">${escapeHtml(char.name)}</h3>
+            <p class="text-[10px] text-lavender-glow mt-0.5 mb-2"><i class="fa-solid fa-feather-pointed"></i> Tạo bởi: <strong>${escapeHtml(char.creator || 'Ẩn danh')}</strong></p>
+            <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed mb-3">${escapeHtml(char.description)}</p>
+          </div>
+          <div class="space-y-2 pt-2 border-t border-night-border/80">
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="openPlotModal('${char.id}')" class="py-2 px-3 rounded-xl bg-night-hover hover:bg-purple-950 border border-lavender/35 text-lavender-light text-xs font-semibold flex items-center justify-center gap-1.5 btn-glow-subtle"><i class="fa-solid fa-book-open text-[10px]"></i><span>Đọc Plot</span></button>
+              <button onclick="handleKissCharacter('${char.id}', event)" class="py-2 px-3 rounded-xl bg-pink-950/40 hover:bg-pink-900/60 border border-pink-500/40 text-pink-300 text-xs font-bold flex items-center justify-center gap-1.5 btn-glow-subtle active:scale-95"><span>💋 Chụt chụt</span><span id="kiss_count_${char.id}" class="bg-pink-500/30 px-1.5 rounded-full text-[10px] font-extrabold text-pink-200">${char.kisses || 0}</span></button>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="openCommentsModal('${char.id}')" class="py-2 px-3 rounded-xl bg-night-hover hover:bg-purple-950 border border-lavender/35 text-lavender-light text-xs font-semibold flex items-center justify-center gap-1.5 btn-glow-subtle"><i class="fa-regular fa-comment text-[10px]"></i><span>Bình luận</span><span class="bg-lavender/20 px-1.5 rounded-full text-[10px] font-extrabold text-lavender-light">${commentCount}</span></button>
+              ${char.isLocked ? `<button onclick="showToast('Nhân vật này đang tạm KHÓA!', 'warning')" class="py-2 px-3 rounded-xl bg-slate-800 text-slate-400 text-xs font-bold flex items-center justify-center gap-1.5 cursor-not-allowed border border-slate-700"><i class="fa-solid fa-lock text-[10px]"></i><span>Khóa</span></button>` : `<button onclick="handleSelectCharacter('${char.id}')" class="py-2 px-3 rounded-xl bg-gradient-to-r from-purple-800 via-lavender to-purple-700 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 btn-glow-purple"><span>Chọn Char</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></button>`}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function changeCardImage(charId, step) {
+  const char = characterList.find(c => c.id === charId); if (!char || !char.gallery || char.gallery.length === 0) return;
+  const total = char.gallery.length; charActiveImageIndex[charId] = (charActiveImageIndex[charId] + step + total) % total;
+  const wrapper = document.getElementById(`cardImg_${charId}`); const counterEl = document.getElementById(`counter_${charId}`); const nextUrl = char.gallery[charActiveImageIndex[charId]];
+  if (wrapper) { const isVideo = isVideoUrl(nextUrl); const newEl = isVideo ? `<video id="cardImg_${charId}" src="${escapeHtml(nextUrl)}" class="char-media select-none" controls autoplay muted loop playsinline></video>` : `<img id="cardImg_${charId}" src="${escapeHtml(nextUrl)}" alt="" onerror="this.src='https://placehold.co/400x500/120d22/b57edc?text=RAU+MUONG'" class="w-auto h-auto max-h-[440px] max-w-full object-contain rounded-2xl shadow-xl select-none" loading="lazy">`; wrapper.outerHTML = newEl; }
+  if (counterEl) counterEl.innerText = `${charActiveImageIndex[charId] + 1}/${total}`;
+}
+
+function toggleLikeCharacter(charId) {
+  if (!currentUser) return showToast("Vui lòng đăng nhập để thả tim!", "warning");
+  const char = characterList.find(c => c.id === charId); if (!char) return;
+  const likeKey = `${currentUser.username}_${charId}`;
+  if (userLikes[likeKey]) { showToast("Bạn đã thả tim rồi! (1 lần duy nhất)", "warning"); return; }
+  userLikes[likeKey] = true;
+  char.likes = (char.likes || 0) + 1;
+  saveUserLikes();
+  saveCharacters();
+  trackStat(charId, 'likes');
+  const likeBtn = document.querySelector(`button[onclick="toggleLikeCharacter('${charId}')"]`);
+  if (likeBtn) { likeBtn.className = `px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur border border-white/20 hover:border-rose-400 flex items-center gap-1.5 transition active:scale-110 shadow-lg text-rose-400 font-bold border-rose-500/60`; likeBtn.innerHTML = `<i class="fa-solid text-rose-500 fa-heart text-base"></i><span class="text-sm font-bold">${char.likes || 0}</span>`; }
+  showToast("Đã thả tim! 💖", "success");
+}
+
+/* ===== COMMENTS ===== */
+function openCommentsModal(charId) {
+  currentCommentCharId = charId; replyToCommentId = null;
+  document.getElementById('commentReplyPreview').classList.add('hidden');
+  renderCommentsList();
+  document.getElementById('commentsModal').classList.remove('hidden');
+}
+function renderCommentsList() {
+  const container = document.getElementById('commentsList');
+  const comments = allComments[currentCommentCharId] || [];
+  if (comments.length === 0) { container.innerHTML = `<p class="text-center text-slate-500 text-xs py-6">Chưa có bình luận nào.</p>`; return; }
+  container.innerHTML = comments.map(c => {
+    const canDelete = currentUser && (currentUser.username === c.author || isAdminUser());
+    const replies = c.replies || [];
+    return `<div class="comment-item">
+      <div class="flex items-center justify-between mb-1"><span class="text-[11px] font-bold text-lavender-light">${escapeHtml(c.author)}</span><span class="text-[9px] text-slate-500">${escapeHtml(c.time)}</span></div>
+      <p class="text-xs text-slate-300 whitespace-pre-line">${escapeHtml(c.text)}</p>
+      <div class="flex items-center gap-3 mt-1.5 text-[10px]">
+        <button onclick="startReplyComment('${c.id}')" class="text-lavender-light hover:text-white"><i class="fa-solid fa-reply"></i> Trả lời</button>
+        ${canDelete ? `<button onclick="deleteComment('${c.id}')" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i> Xóa</button>` : ''}
+      </div>
+      ${replies.length > 0 ? `<div class="mt-2 ml-4 space-y-1.5 border-l-2 border-lavender/30 pl-3">${replies.map(r => { const canDelReply = currentUser && (currentUser.username === r.author || isAdminUser()); return `<div class="text-[11px]"><div class="flex items-center justify-between"><span class="font-bold text-lavender-light">${escapeHtml(r.author)}</span><span class="text-[9px] text-slate-500">${escapeHtml(r.time)}</span></div><p class="text-slate-300 whitespace-pre-line">${escapeHtml(r.text)}</p>${canDelReply ? `<button onclick="deleteReplyComment('${c.id}', '${r.id}')" class="text-red-400 hover:text-red-300 text-[9px] mt-0.5"><i class="fa-solid fa-trash"></i> Xóa</button>` : ''}</div>`; }).join("")}</div>` : ''}
+    </div>`;
+  }).join("");
+}
+function startReplyComment(commentId) { replyToCommentId = commentId; const comment = (allComments[currentCommentCharId] || []).find(c => c.id === commentId); if (!comment) return; document.getElementById('commentReplyText').innerText = `↩ Trả lời ${comment.author}: ${comment.text.substring(0, 40)}...`; document.getElementById('commentReplyPreview').classList.remove('hidden'); document.getElementById('commentInput').focus(); }
+function cancelCommentReply() { replyToCommentId = null; document.getElementById('commentReplyPreview').classList.add('hidden'); }
+function getNowTime() { const now = new Date(); return `${now.getHours()}:${now.getMinutes() < 10 ? '0' : ''}${now.getMinutes()}:${now.getSeconds() < 10 ? '0' : ''}${now.getSeconds()} - ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`; }
+function handleAddComment(e) {
+  e.preventDefault();
+  if (!currentUser) return showToast("Vui lòng đăng nhập để bình luận!", "warning");
+  const input = document.getElementById('commentInput'); const text = input.value.trim();
+  if (!text || !currentCommentCharId) return;
+  if (!allComments[currentCommentCharId]) allComments[currentCommentCharId] = [];
+  const timeStr = getNowTime();
+  if (replyToCommentId) { const parent = allComments[currentCommentCharId].find(c => c.id === replyToCommentId); if (parent) { if (!parent.replies) parent.replies = []; parent.replies.push({ id: 'r_' + Date.now(), author: currentUser.username, text, time: timeStr }); } replyToCommentId = null; document.getElementById('commentReplyPreview').classList.add('hidden'); }
+  else { allComments[currentCommentCharId].unshift({ id: 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2,5), author: currentUser.username, text, time: timeStr, replies: [] }); }
+  saveComments();
+  trackStat(currentCommentCharId, 'comments');
+  input.value = '';
+  renderCommentsList();
+  renderCharacters();
+  showToast("Đã gửi bình luận! 💬", "success");
+}
+function deleteComment(commentId) { if (!confirm("Xóa bình luận này?")) return; allComments[currentCommentCharId] = (allComments[currentCommentCharId] || []).filter(c => c.id !== commentId); saveComments(); renderCommentsList(); renderCharacters(); showToast("Đã xóa bình luận", "success"); }
+function deleteReplyComment(parentId, replyId) { if (!confirm("Xóa trả lời này?")) return; const parent = (allComments[currentCommentCharId] || []).find(c => c.id === parentId); if (!parent) return; parent.replies = (parent.replies || []).filter(r => r.id !== replyId); saveComments(); renderCommentsList(); showToast("Đã xóa trả lời", "success"); }
+
+function renderAdminCommentCharSelect() {
+  const sel = document.getElementById('adminCommentCharId'); const selStyle = document.getElementById('styleCharId');
+  if (!sel) return;
+  const opts = characterList.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  sel.innerHTML = opts; if (selStyle) selStyle.innerHTML = opts;
+  renderRecentAdminComments();
+}
+function renderRecentAdminComments() {
+  const container = document.getElementById('recentAdminCommentsList'); if (!container) return;
+  const recent = [];
+  Object.keys(allComments).forEach(cid => { (allComments[cid] || []).forEach(c => { recent.push({ charId: cid, ...c }); }); });
+  recent.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+  const top = recent.slice(0, 20);
+  if (top.length === 0) { container.innerHTML = `<p class="text-center text-slate-500 text-xs py-4">Chưa có comment nào.</p>`; return; }
+  container.innerHTML = top.map(c => { const char = characterList.find(ch => ch.id === c.charId); return `<div class="p-2 bg-black/60 border border-night-border rounded-xl text-xs space-y-0.5"><div class="flex items-center justify-between"><span class="font-bold text-lavender-light text-[11px]">${escapeHtml(c.author)}</span><span class="text-[9px] text-slate-500">${escapeHtml(c.time)}</span></div><p class="text-slate-300 text-[11px]">${escapeHtml(c.text)}</p><p class="text-[9px] text-cyan-300">→ Char: ${escapeHtml(char ? char.name : 'Đã xóa')}</p><button onclick="adminDeleteRecentComment('${c.charId}','${c.id}')" class="text-red-400 hover:text-red-300 text-[9px] mt-0.5"><i class="fa-solid fa-trash"></i> Xóa</button></div>`; }).join('');
+}
+function adminDeleteRecentComment(charId, commentId) { if (!confirm("Xóa comment này?")) return; allComments[charId] = (allComments[charId] || []).filter(c => c.id !== commentId); saveComments(); renderRecentAdminComments(); renderCharacters(); showToast("Đã xóa comment", "success"); }
+function handleAdminCreateComment(e) {
+  e.preventDefault();
+  const charId = document.getElementById('adminCommentCharId').value;
+  const author = document.getElementById('adminCommentAuthor').value.trim();
+  const text = document.getElementById('adminCommentText').value.trim();
+  const timeInput = document.getElementById('adminCommentTime').value.trim();
+  const dateInput = document.getElementById('adminCommentDate').value.trim();
+  if (!charId || !author || !text) return;
+  let timeStr;
+  if (timeInput || dateInput) { const t = timeInput || (() => { const n = new Date(); return `${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`; })(); const d = dateInput || (() => { const n = new Date(); return `${n.getDate()}/${n.getMonth()+1}/${n.getFullYear()}`; })(); timeStr = `${t} - ${d}`; }
+  else { timeStr = getNowTime(); }
+  if (!allComments[charId]) allComments[charId] = [];
+  allComments[charId].unshift({ id: 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2,5), author, text, time: timeStr, replies: [], adminCreated: true });
+  saveComments();
+  document.getElementById('adminCommentText').value = ''; document.getElementById('adminCommentTime').value = ''; document.getElementById('adminCommentDate').value = '';
+  renderRecentAdminComments(); renderCharacters();
+  showToast(`Đã tạo comment cho "${author}"`, "success");
+}
+function loadCharStyleSettings() {
+  const charId = document.getElementById('styleCharId').value; const char = characterList.find(c => c.id === charId); if (!char) return;
+  const s = char.commentStyle || { enabled: true, color: "#c084fc", glowColor: "#c084fc", opacity: 0.85, speed: "normal", fontSize: 10 };
+  document.getElementById('styleEnabled').checked = s.enabled;
+  document.getElementById('styleColor').value = s.color;
+  document.getElementById('styleGlowColor').value = s.glowColor;
+  document.getElementById('styleOpacity').value = s.opacity;
+  document.getElementById('styleOpacityLabel').innerText = s.opacity;
+  document.getElementById('styleSpeed').value = s.speed;
+  document.getElementById('styleFontSize').value = s.fontSize;
+}
+function handleSaveCommentStyle(e) {
+  e.preventDefault();
+  const charId = document.getElementById('styleCharId').value; const char = characterList.find(c => c.id === charId); if (!char) return;
+  char.commentStyle = { enabled: document.getElementById('styleEnabled').checked, color: document.getElementById('styleColor').value, glowColor: document.getElementById('styleGlowColor').value, opacity: parseFloat(document.getElementById('styleOpacity').value) || 0.85, speed: document.getElementById('styleSpeed').value, fontSize: parseInt(document.getElementById('styleFontSize').value) || 10 };
+  saveCharacters();
+  renderCharacters();
+  showToast(`Đã lưu style cho "${char.name}"`, "success");
+}
+
+function openPlotModal(charId) {
+  const char = characterList.find(c => c.id === charId); if (!char) return;
+  currentPlotChar = char; currentPlotImgIndex = 0;
+  document.getElementById("plotCharName").innerText = char.name;
+  document.getElementById("plotCharCreator").innerText = `Tạo bởi: ${char.creator || 'Ẩn danh'}`;
+  let plotText = escapeHtml(char.plot || char.description || "");
+  const censorInput = char.censorWords || "";
+  if (censorInput.trim().length > 0) { const words = censorInput.split(",").map(w => w.trim()).filter(w => w.length > 0); words.forEach(word => { try { const regex = new RegExp(`(${escapeRegex(word)})`, 'gi'); plotText = plotText.replace(regex, `<span class="censor-spoiler" onclick="this.classList.toggle('revealed')" title="Chạm để mở">$1</span>`); } catch (err) {} }); }
+  document.getElementById("plotContentText").innerHTML = plotText;
+  const gallery = char.gallery && char.gallery.length ? char.gallery : ["https://placehold.co/400x500/120d22/b57edc?text=RAU+MUONG"];
+  renderPlotMedia(document.getElementById("plotMediaWrapper"), gallery[0]);
+  const nav = document.getElementById("plotGalleryNav"); const counter = document.getElementById("plotImageCounter");
+  if (gallery.length > 1) { nav.classList.remove("hidden"); counter.classList.remove("hidden"); counter.innerText = `1 / ${gallery.length}`; } else { nav.classList.add("hidden"); counter.classList.add("hidden"); }
+  document.getElementById("plotModal").classList.remove("hidden");
+  if (char.musicUrl && char.musicUrl.trim()) { const cmp = document.getElementById('charMusicPlayer'); cmp.src = char.musicUrl.trim(); cmp.volume = 0.5; cmp.play().catch(() => {}); }
+}
+function renderPlotMedia(container, url) { if (isVideoUrl(url)) { container.innerHTML = `<video src="${escapeHtml(url)}" class="max-h-[60vh] w-auto max-w-full rounded-xl shadow-2xl" controls autoplay muted loop playsinline></video>`; } else { container.innerHTML = `<img src="${escapeHtml(url)}" alt="Full" class="max-h-[60vh] w-auto max-w-full object-contain rounded-xl shadow-2xl" onerror="this.src='https://placehold.co/400x500/120d22/b57edc?text=RAU+MUONG'">`; } }
+function changePlotImage(step) { if (!currentPlotChar || !currentPlotChar.gallery || currentPlotChar.gallery.length < 2) return; const total = currentPlotChar.gallery.length; currentPlotImgIndex = (currentPlotImgIndex + step + total) % total; renderPlotMedia(document.getElementById("plotMediaWrapper"), currentPlotChar.gallery[currentPlotImgIndex]); document.getElementById("plotImageCounter").innerText = `${currentPlotImgIndex + 1} / ${total}`; }
+function closePlotModal() { closeModal("plotModal"); const cmp = document.getElementById('charMusicPlayer'); cmp.pause(); cmp.src = ''; }
+
+function showWelcomeNotice() { document.getElementById("noticeDisplayTitle").innerText = currentNotice.title || DEFAULT_NOTICE.title; document.getElementById("noticeDisplayContent").innerText = currentNotice.content || DEFAULT_NOTICE.content; document.getElementById("announcementModal").classList.remove("hidden"); }
+function proceedFromNoticeToGuide() { closeModal("announcementModal"); openGuideModal(); if (!currentUser) setTimeout(() => document.getElementById("authGateModal").classList.remove("hidden"), 300); setTimeout(() => { if (currentUser) showDailyRankPopup(); }, 700); }
+function closeNoticeDirectly() { closeModal("announcementModal"); if (!currentUser) document.getElementById("authGateModal").classList.remove("hidden"); setTimeout(() => { if (currentUser) showDailyRankPopup(); }, 500); }
+function openGuideModal() {
+  document.getElementById("guideDisplayText").innerText = currentGuide.text || DEFAULT_GUIDE.text;
+  const imgBox = document.getElementById("guideImagesContainer"); const imgs = currentGuide.images || [];
+  if (imgs.length > 0) { currentGuideImgIdx = 0; document.getElementById("guideDisplayImage").src = imgs[0]; imgBox.classList.remove("hidden"); const counter = document.getElementById("guideImageCounter"); const prev = document.getElementById("guideNavPrev"); const next = document.getElementById("guideNavNext"); if (imgs.length > 1) { counter.classList.remove("hidden"); counter.innerText = `1 / ${imgs.length}`; prev.classList.remove("hidden"); next.classList.remove("hidden"); } else { counter.classList.add("hidden"); prev.classList.add("hidden"); next.classList.add("hidden"); } } else { imgBox.classList.add("hidden"); }
+  document.getElementById("guideModal").classList.remove("hidden");
+}
+function changeGuideImage(step) { const imgs = currentGuide.images || []; if (imgs.length < 2) return; currentGuideImgIdx = (currentGuideImgIdx + step + imgs.length) % imgs.length; document.getElementById("guideDisplayImage").src = imgs[currentGuideImgIdx]; document.getElementById("guideImageCounter").innerText = `${currentGuideImgIdx + 1} / ${imgs.length}`; }
+function formatPlotText(type) {
+  const textarea = document.getElementById("charPlot"); const start = textarea.selectionStart; const end = textarea.selectionEnd; const selected = textarea.value.substring(start, end);
+  let formatted = selected;
+  if (type === 'bold') formatted = `<b>${selected || 'chữ đậm'}</b>`;
+  else if (type === 'italic') formatted = `<i>${selected || 'chữ nghiêng'}</i>`;
+  else if (type === 'underline') formatted = `<u>${selected || 'chữ gạch chân'}</u>`;
+  else if (type === 'strike') formatted = `<s>${selected || 'chữ gạch ngang'}</s>`;
+  else if (type === 'quote') formatted = `"${selected || 'lời thoại'}"`;
+  else if (type === 'mark') formatted = `<mark class="bg-purple-600/40 text-amber-200 px-1 rounded">${selected || 'nổi bật'}</mark>`;
+  textarea.setRangeText(formatted, start, end, 'end'); textarea.focus();
+}
+document.getElementById('charHasBL').addEventListener('change', function() { document.getElementById('blLinkWrap').classList.toggle('hidden', !this.checked); });
+document.getElementById('charHasBG').addEventListener('change', function() { document.getElementById('bgLinkWrap').classList.toggle('hidden', !this.checked); });
+
+function renderDialogueRows() {
+  const wrap = document.getElementById('dialogueRowsWrap'); if (!wrap) return;
+  if (currentDialogueRows.length === 0) { wrap.innerHTML = `<p class="text-[10px] text-slate-500 italic text-center py-2">Chưa có mốc nào. Bấm "➕ Thêm mốc" để tạo.</p>`; return; }
+  wrap.innerHTML = currentDialogueRows.map((d, i) => `<div class="dialogue-row"><input type="number" min="1" value="${Number(d.kisses) || 10}" onchange="updateDialogueRow(${i}, 'kisses', this.value)" placeholder="Số lần" class="px-2 py-1 bg-black/60 border border-purple-500/40 rounded-lg text-white text-xs text-center"><input type="text" value="${escapeHtml(d.text || '')}" onchange="updateDialogueRow(${i}, 'text', this.value)" placeholder="Lời thoại..." class="px-2 py-1 bg-black/60 border border-purple-500/40 rounded-lg text-white text-xs"><input type="url" value="${escapeHtml(d.voiceUrl || '')}" onchange="updateDialogueRow(${i}, 'voiceUrl', this.value)" placeholder="Link voice (tùy chọn)..." class="full-row px-2 py-1 bg-black/60 border border-purple-500/40 rounded-lg text-white text-xs"><button type="button" onclick="removeDialogueRow(${i})" class="full-row py-1 rounded-lg text-[10px] font-bold bg-red-600/30 hover:bg-red-600/50 border border-red-500/40 text-red-200">🗑 Xóa mốc này</button></div>`).join("");
+}
+function addDialogueRow() { currentDialogueRows.push({ kisses: 10, text: '', voiceUrl: '' }); renderDialogueRows(); }
+function updateDialogueRow(i, field, value) { if (!currentDialogueRows[i]) return; if (field === 'kisses') currentDialogueRows[i].kisses = parseInt(value) || 0; else currentDialogueRows[i][field] = value; }
+function removeDialogueRow(i) { currentDialogueRows.splice(i, 1); renderDialogueRows(); }
+
+function handleSaveCharacterForm(e) {
+  e.preventDefault();
+  const editId = document.getElementById("editingCharId").value;
+  const name = document.getElementById("charName").value.trim();
+  const creator = document.getElementById("charCreator").value.trim();
+  const badge = document.getElementById("charBadgeSelect").value;
+  const isLocked = document.getElementById("charIsLocked").checked;
+  const imagesInput = document.getElementById("charImage").value.trim();
+  const hasBL = document.getElementById("charHasBL").checked;
+  const hasBG = document.getElementById("charHasBG").checked;
+  const linkBL = document.getElementById("charLinkBL").value.trim();
+  const linkBG = document.getElementById("charLinkBG").value.trim();
+  const desc = document.getElementById("charDesc").value.trim();
+  const plot = document.getElementById("charPlot").value.trim();
+  const censorWords = document.getElementById("charCensorWords").value.trim();
+  const musicUrl = document.getElementById("charMusicUrl").value.trim();
+  const likesSet = document.getElementById("charLikesSet").value.trim();
+  const viewsSet = document.getElementById("charViewsSet").value.trim();
+  const gallery = imagesInput.split(",").map(u => u.trim()).filter(u => u.length > 0);
+  const checkedTags = Array.from(document.querySelectorAll(".preset-tag-cb:checked")).map(cb => cb.value);
+  const customTags = document.getElementById("charCustomTags").value.split(",").map(t => t.trim()).filter(t => t.length > 0);
+  const finalTags = [...new Set([...checkedTags, ...customTags])];
+  if (finalTags.length === 0) finalTags.push("Khác");
+  if (gallery.length === 0) return showToast("Cần ít nhất 1 link ảnh/video!", "error");
+  const dialoguesClean = (currentDialogueRows || []).filter(d => d.text && d.text.trim() && Number(d.kisses) > 0).map(d => ({ kisses: parseInt(d.kisses), text: d.text.trim(), voiceUrl: (d.voiceUrl || '').trim() }));
+
+  if (editId) {
+    const char = characterList.find(c => c.id === editId);
+    if (char) {
+      Object.assign(char, { name, creator, badge, isLocked, gallery, image: gallery[0], hasBL, hasBG, linkBL, linkBG, link: linkBG || linkBL, tags: finalTags, description: desc, plot, censorWords, dialogues: dialoguesClean, musicUrl });
+      if (likesSet !== "" && !isNaN(parseInt(likesSet))) char.likes = parseInt(likesSet);
+      if (viewsSet !== "" && !isNaN(parseInt(viewsSet))) char.views = parseInt(viewsSet);
+    }
+    showToast(`Đã cập nhật: "${name}" (Sync Firebase)`, "success");
+  } else {
+    const newId = "char_" + Date.now();
+    characterList.unshift({ id: newId, name, creator, badge, isLocked, gallery, image: gallery[0], hasBL, hasBG, linkBL, linkBG, link: linkBG || linkBL, tags: finalTags, description: desc, plot, censorWords, dialogues: dialoguesClean, musicUrl, views: viewsSet !== "" && !isNaN(parseInt(viewsSet)) ? parseInt(viewsSet) : 0, likes: likesSet !== "" && !isNaN(parseInt(likesSet)) ? parseInt(likesSet) : 0, kisses: 0, topKisser: "", commentStyle: { enabled: true, color: "#c084fc", glowColor: "#c084fc", opacity: 0.85, speed: "normal", fontSize: 10 } });
+    allComments[newId] = [];
+    showToast(`Đã đăng: "${name}" (Sync Firebase)`, "success");
+  }
+  saveCharacters();
+  saveComments();
+  cancelEditMode();
+  closeModal("adminModal");
+  renderCharacters();
+  renderPresetTagButtons();
+  renderAdminCommentCharSelect();
+}
+function editCharacterById(charId) {
+  const char = characterList.find(c => c.id === charId); if (!char) return;
+  switchAdminTab('create');
+  document.getElementById("editingCharId").value = char.id;
+  document.getElementById("adminFormModeTitle").innerText = `✏️ Sửa: ${char.name}`;
+  document.getElementById("btnCancelEdit").classList.remove("hidden");
+  document.getElementById("btnSubmitCharForm").innerText = "Lưu Thay Đổi";
+  document.getElementById("charName").value = char.name;
+  document.getElementById("charCreator").value = char.creator || "";
+  document.getElementById("charBadgeSelect").value = char.badge || "";
+  document.getElementById("charIsLocked").checked = char.isLocked === true;
+  document.getElementById("charImage").value = (char.gallery || []).join(", ");
+  document.getElementById("charHasBL").checked = char.hasBL === true;
+  document.getElementById("charHasBG").checked = char.hasBG === true;
+  document.getElementById("blLinkWrap").classList.toggle('hidden', !char.hasBL);
+  document.getElementById("bgLinkWrap").classList.toggle('hidden', !char.hasBG);
+  document.getElementById("charLinkBL").value = char.linkBL || "";
+  document.getElementById("charLinkBG").value = char.linkBG || "";
+  document.getElementById("charDesc").value = char.description || "";
+  document.getElementById("charPlot").value = char.plot || "";
+  document.getElementById("charCensorWords").value = char.censorWords || "";
+  document.getElementById("charMusicUrl").value = char.musicUrl || "";
+  document.getElementById("charLikesSet").value = "";
+  document.getElementById("charViewsSet").value = "";
+  document.querySelectorAll(".preset-tag-cb").forEach(cb => { cb.checked = (char.tags || []).includes(cb.value); });
+  currentDialogueRows = (char.dialogues || []).map(d => ({ kisses: d.kisses, text: d.text, voiceUrl: d.voiceUrl || '' }));
+  renderDialogueRows();
+}
+function cancelEditMode() {
+  document.getElementById("editingCharId").value = "";
+  document.getElementById("adminFormModeTitle").innerText = "➕ Đăng Nhân Vật Mới";
+  document.getElementById("btnCancelEdit").classList.add("hidden");
+  document.getElementById("btnSubmitCharForm").innerText = "Lưu";
+  document.querySelector("#adminTabCreate form").reset();
+  document.getElementById("blLinkWrap").classList.add("hidden");
+  document.getElementById("bgLinkWrap").classList.add("hidden");
+  currentDialogueRows = []; renderDialogueRows();
+}
+function toggleLockCharacter(charId) { const char = characterList.find(c => c.id === charId); if (!char) return; char.isLocked = !char.isLocked; saveCharacters(); renderAdminCharManageList(); renderCharacters(); }
+function renderAdminCharManageList() {
+  const container = document.getElementById("adminCharManageList"); if (!container) return;
+  container.innerHTML = characterList.map(c => `<div class="p-3 bg-black/60 border border-night-border rounded-2xl flex items-center justify-between text-xs gap-2"><div class="flex items-center gap-3 min-w-0 flex-1"><img src="${escapeHtml(c.gallery ? c.gallery[0] : '')}" onerror="this.src='https://placehold.co/100x100/120d22/b57edc?text=Char'" class="w-10 h-10 rounded-xl object-contain bg-black/50 border border-night-border shrink-0"><div class="min-w-0"><p class="font-bold text-white text-sm leading-none flex items-center gap-1.5 flex-wrap"><span class="truncate">${escapeHtml(c.name)}</span>${c.isLocked ? '<span class="text-[10px] text-amber-300 font-bold bg-amber-500/20 px-1.5 py-0.2 rounded">🔒</span>' : ''}</p><p class="text-[10px] text-slate-400 mt-1">💋 ${c.kisses || 0} • 💖 ${c.likes || 0} • 👁 ${c.views || 0} • 💬 ${(allComments[c.id]||[]).length}</p></div></div><div class="flex items-center gap-1.5 shrink-0"><button type="button" onclick="toggleLockCharacter('${c.id}')" class="px-2 py-1.5 rounded-xl border text-[10px] font-bold transition ${c.isLocked ? 'bg-green-600/20 border-green-500 text-green-300' : 'bg-amber-500/20 border-amber-500 text-amber-300'}">${c.isLocked ? 'Mở' : 'Khóa'}</button><button type="button" onclick="editCharacterById('${c.id}')" class="px-2.5 py-1.5 rounded-xl bg-lavender/30 border border-lavender/50 text-lavender-light hover:text-white font-bold text-[10px]">Sửa</button><button type="button" onclick="deleteCharacterById('${c.id}')" class="text-slate-500 hover:text-red-400 p-1"><i class="fa-solid fa-trash text-xs"></i></button></div></div>`).join("");
+}
+function deleteCharacterById(id) { if (confirm("Xóa nhân vật này? (Sẽ sync xóa cho TẤT CẢ users)")) { characterList = characterList.filter(c => c.id !== id); delete allComments[id]; saveCharacters(); saveComments(); renderAdminCharManageList(); renderAdminCommentCharSelect(); renderCharacters(); showToast("Đã xóa trên toàn hệ thống", "success"); } }
+function handleSaveGuideConfig(e) { e.preventDefault(); currentGuide = { text: document.getElementById("adminGuideText").value.trim(), images: document.getElementById("adminGuideImages").value.split(",").map(u => u.trim()).filter(u => u.length > 0) }; saveGuide(); showToast("Đã lưu hướng dẫn! (Sync Firebase)", "success"); }
+function handleUpdateNotice(e) { e.preventDefault(); currentNotice = { title: document.getElementById("adminNoticeTitle").value.trim(), content: document.getElementById("adminNoticeContent").value.trim() }; saveNotice(); showToast("Đã lưu thông báo! (Sync Firebase)", "success"); }
+function renderAdminMusicList() {
+  const container = document.getElementById("adminMusicList"); if (!container) return;
+  container.innerHTML = musicPlaylist.map((m, i) => `<div class="flex items-center justify-between p-2 bg-black/60 border border-night-border rounded-xl text-xs"><div class="min-w-0 flex-1"><p class="font-bold text-white truncate">${escapeHtml(m.title)}</p><p class="text-[9px] text-slate-500 truncate">${escapeHtml(m.url)}</p></div><button onclick="removeMusic(${i})" class="text-red-400 hover:text-red-300 ml-2"><i class="fa-solid fa-trash"></i></button></div>`).join("");
+}
+function addNewMusic() { const title = document.getElementById("newMusicTitle").value.trim(); const url = document.getElementById("newMusicUrl").value.trim(); if (!title || !url) return showToast("Cần nhập tên và link!", "error"); musicPlaylist.push({ id: "bgm_" + Date.now(), title, url }); savePlaylist(); document.getElementById("newMusicTitle").value = ""; document.getElementById("newMusicUrl").value = ""; renderAdminMusicList(); showToast("Đã thêm nhạc!", "success"); }
+function removeMusic(index) { if (!confirm("Xóa bài này?")) return; musicPlaylist.splice(index, 1); savePlaylist(); if (currentSongIndex >= musicPlaylist.length) currentSongIndex = 0; renderAdminMusicList(); updateMusicDisplay(); }
+function updateMusicDisplay() { if (musicPlaylist.length > 0) document.getElementById("bgmTitleDisplay").innerText = musicPlaylist[currentSongIndex].title; }
+function nextSong() { if (musicPlaylist.length === 0) return; currentSongIndex = (currentSongIndex + 1) % musicPlaylist.length; const audio = document.getElementById("htmlAudioPlayer"); audio.src = musicPlaylist[currentSongIndex].url; updateMusicDisplay(); if (isMusicPlaying) audio.play().catch(() => {}); }
+
+function switchAuthTab(t) { document.getElementById("formLogin").classList.toggle("hidden", t !== 'login'); document.getElementById("formRegister").classList.toggle("hidden", t !== 'register'); document.getElementById("tabAuthLogin").className = t === 'login' ? "w-1/2 pb-2 text-lavender border-b-2 border-lavender transition font-bold" : "w-1/2 pb-2 text-slate-400 hover:text-white transition"; document.getElementById("tabAuthRegister").className = t === 'register' ? "w-1/2 pb-2 text-lavender border-b-2 border-lavender transition font-bold" : "w-1/2 pb-2 text-slate-400 hover:text-white transition"; }
+function generateRandomNickname() { document.getElementById("regUsername").value = RANDOM_NICKNAMES[Math.floor(Math.random() * RANDOM_NICKNAMES.length)]; }
+function checkForbiddenName(name) { const lower = name.toLowerCase().replace(/\s+/g, ''); return FORBIDDEN_NAMES.some(f => lower.includes(f)); }
+
+function handleRegisterSubmit(e) {
+  e.preventDefault();
+  if (!appSettings.allowRegister) { showToast("Admin đã tắt chức năng đăng ký!", "warning"); return; }
+  const username = document.getElementById("regUsername").value.trim();
+  const password = document.getElementById("regPassword").value;
+  const gender = document.getElementById("regGender").value;
+  const age = parseInt(document.getElementById("regAge").value) || 18;
+  const bDay = parseInt(document.getElementById("regBirthDay").value, 10);
+  const bMonth = parseInt(document.getElementById("regBirthMonth").value, 10);
+  const errEl = document.getElementById("regErrorMsg");
+  if (!username || username.length < 2) { errEl.innerText = "Tên phải từ 2 ký tự!"; errEl.classList.remove("hidden"); return; }
+  if (checkForbiddenName(username)) { errEl.innerText = "Tên này bị cấm!"; errEl.classList.remove("hidden"); return; }
+  if (!password || password.length < 3) { errEl.innerText = "Mật khẩu từ 3 ký tự!"; errEl.classList.remove("hidden"); return; }
+  if (registeredAccounts.some(a => a.username.toLowerCase() === username.toLowerCase())) { errEl.innerText = "Tên đã tồn tại!"; errEl.classList.remove("hidden"); return; }
+  if (isNaN(bDay) || bDay < 1 || bDay > 31 || isNaN(bMonth) || bMonth < 1 || bMonth > 12) { errEl.innerText = "Ngày/tháng không hợp lệ!"; errEl.classList.remove("hidden"); return; }
+  const deviceId = getDeviceId(); const deviceMap = getDeviceAccounts();
+  if (deviceMap[deviceId]) { errEl.innerText = `Thiết bị này đã tạo tài khoản "${deviceMap[deviceId]}" rồi! Mỗi thiết bị chỉ được tạo 1 tài khoản.`; errEl.classList.remove("hidden"); return; }
+  errEl.classList.add("hidden");
+  const newAcc = { username, password, gender, age, birthday: `${bDay}/${bMonth}`, role: "user", deviceId };
+  registeredAccounts.push(newAcc);
+  saveAccounts();
+  deviceMap[deviceId] = username; saveDeviceAccounts(deviceMap);
+  currentUser = newAcc;
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+  checkUserAuth();
+  showToast(`🎉 Chào mừng ${username}!`, "success");
+}
+function handleLoginSubmit(e) {
+  e.preventDefault();
+  const u = document.getElementById("loginUsername").value.trim();
+  const p = document.getElementById("loginPassword").value;
+  const errEl = document.getElementById("loginErrorMsg");
+  if (u.toLowerCase() === "admin" && ADMIN_PASSWORDS.includes(p)) { loginAsAdmin(); return; }
+  const acc = registeredAccounts.find(a => a.username.toLowerCase() === u.toLowerCase() && a.password === p);
+  if (acc) { currentUser = acc; localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser)); checkUserAuth(); showToast(`Xin chào ${acc.username}!`, "success"); }
+  else { errEl.innerText = "Sai tên hoặc mật khẩu!"; errEl.classList.remove("hidden"); }
+}
+function openAdminDirectModal() { document.getElementById("loginModal").classList.remove("hidden"); }
+function handleAdminLogin(e) {
+  e.preventDefault();
+  const pass = document.getElementById("adminPassword").value;
+  if (ADMIN_PASSWORDS.includes(pass)) { closeModal("loginModal"); document.getElementById("adminPassError").classList.add("hidden"); loginAsAdmin(); openAdminPortal(); }
+  else { document.getElementById("adminPassError").classList.remove("hidden"); }
+}
+function loginAsAdmin() { currentUser = { username: "Admin", role: "admin", age: 999, birthday: "" }; isAdminLoggedIn = true; localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser)); checkUserAuth(); showToast("👑 Admin đã đăng nhập!", "success"); }
+function checkUserAuth() {
+  const authModal = document.getElementById("authGateModal"); const headerBadge = document.getElementById("userHeaderBadge");
+  if (!currentUser) { headerBadge.classList.add("hidden"); headerBadge.classList.remove("flex"); }
+  else {
+    isAdminLoggedIn = (currentUser.role === 'admin');
+    authModal.classList.add("hidden");
+    headerBadge.classList.remove("hidden"); headerBadge.classList.add("flex");
+    document.getElementById("userDisplayName").innerText = currentUser.username;
+    document.getElementById("userAgeBadge").innerText = currentUser.role === 'admin' ? 'Quản Trị' : `${currentUser.age} tuổi`;
+    document.getElementById("userAvatarText").innerText = currentUser.username.charAt(0).toUpperCase();
+    checkUserBirthday();
+    renderCharacters();
+  }
+}
+function logoutUser() { if (confirm("Đăng xuất?")) { localStorage.removeItem(USER_STORAGE_KEY); currentUser = null; isAdminLoggedIn = false; checkUserAuth(); document.getElementById("authGateModal").classList.remove("hidden"); showToast("Đã đăng xuất", "info"); } }
+function checkUserBirthday() {
+  const bar = document.getElementById("birthdayMarqueeBar");
+  if (!currentUser || !currentUser.birthday || currentUser.role === 'admin') { bar.classList.add("hidden"); return; }
+  const now = new Date(); const d = now.getDate(); const m = now.getMonth() + 1; const parts = currentUser.birthday.split('/');
+  if (parseInt(parts[0]) === d && parseInt(parts[1]) === m) { bar.classList.remove("hidden"); document.getElementById("birthdayMarqueeText").innerText = `🎉 CHÚC MỪNG SINH NHẬT ${currentUser.username.toUpperCase()}! 🎂 Chúc bạn một ngày thật đặc biệt! 💖`; }
+  else { bar.classList.add("hidden"); }
+}
+function toggleMusicPlayback() {
+  const audio = document.getElementById("htmlAudioPlayer"); const song = musicPlaylist[currentSongIndex];
+  if (!audio.src || audio.src === window.location.href) audio.src = song ? song.url : "https://files.catbox.moe/io1op0.mp3";
+  if (isMusicPlaying) { audio.pause(); setMusicUI(false); } else { audio.play().then(() => setMusicUI(true)).catch(() => { setMusicUI(false); showToast("Không phát được nhạc!", "error"); }); }
+}
+function setMusicUI(playing) {
+  isMusicPlaying = playing;
+  const disk = document.getElementById("musicDisk"); const playIcon = document.getElementById("playIcon"); const statusText = document.getElementById("bgmStatusDisplay");
+  if (playing) { disk.classList.remove("spin-paused"); playIcon.className = "fa-solid fa-pause"; statusText.innerText = "Đang phát 🎵"; }
+  else { disk.classList.add("spin-paused"); playIcon.className = "fa-solid fa-play"; statusText.innerText = "Đã tạm dừng"; }
+}
+
+function openAdminPortal() {
+  if (isAdminLoggedIn) {
+    renderAdminCharManageList(); renderAdminLetters(); renderAdminMusicList(); renderAdminCommentCharSelect(); renderDialogueRows();
+    document.getElementById("adminNoticeTitle").value = currentNotice.title || "";
+    document.getElementById("adminNoticeContent").value = currentNotice.content || "";
+    document.getElementById("adminGuideText").value = currentGuide.text || "";
+    document.getElementById("adminGuideImages").value = (currentGuide.images || []).join(", ");
+    document.getElementById("settingDailyRankPopup").checked = !!appSettings.dailyRankPopup;
+    document.getElementById("settingAllowRegister").checked = !!appSettings.allowRegister;
+    updateSyncBadge();
+    document.getElementById("adminModal").classList.remove("hidden");
+    if (characterList.length > 0) { const selStyle = document.getElementById("styleCharId"); if (selStyle && !selStyle.value) selStyle.value = characterList[0].id; loadCharStyleSettings(); }
+  } else { openAdminDirectModal(); }
+}
+function switchAdminTab(t) {
+  const tabs = ['create', 'charList', 'createComment', 'commentStyle', 'guideConfig', 'notice', 'music', 'settings', 'letters'];
+  tabs.forEach(tab => {
+    const el = document.getElementById(`adminTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+    const btn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+    if (el) el.classList.toggle("hidden", tab !== t);
+    if (btn) btn.className = (tab === t) ? "pb-1.5 text-lavender border-b-2 border-lavender font-bold" : "pb-1.5 text-slate-400 hover:text-white";
+  });
+  if (t === 'charList') renderAdminCharManageList();
+  if (t === 'letters') renderAdminLetters();
+  if (t === 'music') renderAdminMusicList();
+  if (t === 'createComment') renderAdminCommentCharSelect();
+  if (t === 'commentStyle') { renderAdminCommentCharSelect(); if (!document.getElementById('styleCharId').value && characterList.length > 0) document.getElementById('styleCharId').value = characterList[0].id; loadCharStyleSettings(); }
+}
+function renderAdminLetters() {
+  const container = document.getElementById("adminLettersList"); if (!container) return;
+  if (adminLetters.length === 0) { container.innerHTML = `<p class="text-center text-slate-500 text-xs py-8">Chưa có thư.</p>`; return; }
+  container.innerHTML = adminLetters.map(l => `<div class="p-3 bg-black/60 border border-night-border rounded-2xl text-xs space-y-1"><div class="flex items-center justify-between"><span class="font-bold text-lavender-light">${escapeHtml(l.sender)}</span><span class="text-[10px] text-slate-500">${escapeHtml(l.time)}</span></div><p class="text-[10px] text-amber-300 font-semibold">[${escapeHtml(l.type)}]</p><p class="text-slate-300 whitespace-pre-line">${escapeHtml(l.content)}</p></div>`).join("");
+}
+function renderPresetTagButtons() {
+  const allTags = ["Tất cả", ...new Set(characterList.flatMap(c => c.tags || []))];
+  const tf = document.getElementById("tagFilters");
+  if (tf) { tf.innerHTML = allTags.map(tag => `<button onclick="setFilterTag('${escapeHtml(tag).replace(/'/g, "\\'")}')" class="px-3 py-1 rounded-full text-[11px] whitespace-nowrap transition shrink-0 ${tag === currentFilterTag ? 'bg-lavender text-white font-bold btn-glow-purple' : 'bg-night-card text-slate-300 border border-night-border hover:border-lavender'}">#${escapeHtml(tag)}</button>`).join(""); }
+  const pl = document.getElementById("presetTagsList");
+  if (pl) { pl.innerHTML = PRESET_TAGS.map(t => `<label class="text-[10px] bg-black/40 border border-night-border px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer"><input type="checkbox" value="${escapeHtml(t)}" class="preset-tag-cb accent-purple-600"><span>${escapeHtml(t)}</span></label>`).join(""); }
+}
+function setFilterTag(t) { currentFilterTag = t; renderPresetTagButtons(); renderCharacters(); }
+document.getElementById("searchInput").addEventListener("input", (e) => { currentSearchQuery = e.target.value; renderCharacters(); });
+function closeModal(id) { const el = document.getElementById(id); if (el) el.classList.add("hidden"); }
+
+function toggleChatRoomModal() {
+  const chat = document.getElementById("chatRoomModal");
+  chat.classList.toggle("hidden");
+  if (!chat.classList.contains("hidden")) { chat.classList.add("flex"); renderChat(); setTimeout(() => { const c = document.getElementById("chatMessagesContainer"); c.scrollTop = c.scrollHeight; }, 50); }
+  else { chat.classList.remove("flex"); }
+}
+function handleSendChatMessage(e) {
+  e.preventDefault();
+  if (!currentUser) return showToast("Vui lòng đăng nhập!", "warning");
+  const input = document.getElementById("chatInputMessage"); const txt = input.value.trim();
+  if (!txt) return;
+  const now = new Date();
+  const time = `${now.getHours()}:${now.getMinutes() < 10 ? '0' : ''}${now.getMinutes()} - ${now.getDate()}/${now.getMonth()+1}`;
+  const msg = { id: 'msg_' + Date.now() + Math.random().toString(36).substr(2, 5), author: currentUser.username, text: txt, time, edited: false, deleted: false };
+  if (replyToChatId) { const parent = chatMessages.find(m => m.id === replyToChatId); if (parent) msg.replyTo = { id: parent.id, author: parent.author, text: (parent.text || '').substring(0, 60) }; replyToChatId = null; document.getElementById('replyPreview').classList.add('hidden'); }
+  chatMessages.push(msg);
+  if (chatMessages.length > 300) chatMessages = chatMessages.slice(-300);
+  saveChat();
+  input.value = ""; renderChat();
+  setTimeout(() => { const c = document.getElementById("chatMessagesContainer"); c.scrollTop = c.scrollHeight; }, 50);
+}
+function renderChat() {
+  const container = document.getElementById("chatMessagesContainer"); if (!container) return;
+  container.innerHTML = chatMessages.map(m => {
+    const isOwn = currentUser && currentUser.username === m.author;
+    const isAdminMsg = isAdminUser();
+    const canDelete = (isOwn || isAdminMsg) && !m.deleted;
+    const canEdit = isOwn && !m.deleted;
+    if (m.deleted) return `<div class="text-center text-[10px] text-slate-500 italic py-1">🚫 ${escapeHtml(m.deletedBy || 'Admin')} đã xóa tin nhắn của ${escapeHtml(m.author)}</div>`;
+    return `<div class="chat-msg-wrapper ${isOwn ? 'own' : ''} flex flex-col ${isOwn ? 'items-end' : 'items-start'}">
+      <div class="flex items-center gap-1.5 mb-1 ${isOwn ? 'flex-row-reverse' : ''}"><span class="text-[10px] font-bold ${isOwn ? 'text-lavender-300' : 'text-lavender-light'}">${escapeHtml(m.author)}</span><span class="text-[8px] text-slate-500">${escapeHtml(m.time)}</span>${m.edited ? '<span class="text-[8px] text-slate-500 italic">(đã sửa)</span>' : ''}</div>
+      <div class="chat-toolbar">
+        <button onclick="startReplyChat('${m.id}')" title="Trả lời" class="text-lavender-light hover:text-white px-2 py-0.5 rounded hover:bg-white/10"><i class="fa-solid fa-reply text-[10px]"></i></button>
+        ${canEdit ? `<button onclick="editChatMsg('${m.id}')" title="Sửa" class="text-amber-300 hover:text-white px-2 py-0.5 rounded hover:bg-white/10"><i class="fa-solid fa-pen text-[10px]"></i></button>` : ''}
+        ${canDelete ? `<button onclick="deleteChatMsg('${m.id}')" title="Thu hồi" class="text-red-400 hover:text-white px-2 py-0.5 rounded hover:bg-white/10"><i class="fa-solid fa-trash text-[10px]"></i></button>` : ''}
+      </div>
+      ${m.replyTo ? `<div class="reply-quote max-w-[85%] mb-1">↩ ${escapeHtml(m.replyTo.author)}: ${escapeHtml(m.replyTo.text)}</div>` : ''}
+      <div class="px-3 py-1.5 rounded-2xl ${isOwn ? 'bg-lavender-dark/60 border border-lavender/40' : 'bg-black/50 border border-white/10'} text-white break-words max-w-[85%]">${escapeHtml(m.text)}</div>
+    </div>`;
+  }).join("");
+}
+function startReplyChat(msgId) { replyToChatId = msgId; const m = chatMessages.find(x => x.id === msgId); if (!m) return; document.getElementById('replyPreviewText').innerText = `↩ ${m.author}: ${(m.text || '').substring(0, 40)}...`; document.getElementById('replyPreview').classList.remove('hidden'); document.getElementById('chatInputMessage').focus(); }
+function cancelReply() { replyToChatId = null; document.getElementById('replyPreview').classList.add('hidden'); }
+function editChatMsg(msgId) { const m = chatMessages.find(x => x.id === msgId); if (!m || !currentUser || currentUser.username !== m.author) return; const newText = prompt("Sửa tin nhắn:", m.text); if (newText === null || !newText.trim()) return; m.text = newText.trim(); m.edited = true; saveChat(); renderChat(); showToast("Đã sửa tin nhắn", "success"); }
+function deleteChatMsg(msgId) { const m = chatMessages.find(x => x.id === msgId); if (!m) return; const isOwn = currentUser && currentUser.username === m.author; const isAdminMsg = isAdminUser(); if (!isOwn && !isAdminMsg) return; if (!confirm("Thu hồi tin nhắn này?")) return; m.deleted = true; m.deletedBy = (isAdminMsg && !isOwn) ? 'Admin' : m.author; m.text = ''; m.replyTo = null; saveChat(); renderChat(); showToast("Đã thu hồi tin nhắn", "success"); }
+function openMailboxModal() { if (!currentUser) return showToast("Vui lòng đăng nhập!", "warning"); document.getElementById("mailboxModal").classList.remove("hidden"); }
+function handleSendLetterToAdmin(e) {
+  e.preventDefault();
+  const type = document.getElementById("letterType").value;
+  const content = document.getElementById("letterContent").value.trim();
+  if (!content) return;
+  adminLetters.unshift({ id: "letter_" + Date.now() + '_' + Math.random().toString(36).substr(2,5), sender: currentUser ? currentUser.username : "Ẩn danh", type, content, time: new Date().toLocaleString('vi-VN') });
+  saveLetters();
+  showToast("Thư đã gửi Admin! 💖", "success");
+  document.getElementById("letterContent").value = "";
+  closeModal("mailboxModal");
+}
+function resetDefaultData() {
+  if (confirm("Khôi phục mặc định? (Sẽ xóa cả trên Firebase)")) {
+    localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(GUIDE_STORAGE_KEY); localStorage.removeItem(NOTICE_STORAGE_KEY); localStorage.removeItem(COMMENTS_STORAGE_KEY);
+    characterList = DEFAULT_CHARACTERS.map(c => ({...c}));
+    allComments = {}; characterList.forEach(c => { allComments[c.id] = []; });
+    currentGuide = { ...DEFAULT_GUIDE }; currentNotice = { ...DEFAULT_NOTICE };
+    saveCharacters(); saveComments(); saveGuide(); saveNotice();
+    renderCharacters(); renderPresetTagButtons(); renderAdminCommentCharSelect();
+    showToast("Đã reset! (Sync Firebase)", "success");
+  }
+}
+function saveDailyRankSetting() { appSettings.dailyRankPopup = document.getElementById("settingDailyRankPopup").checked; saveAppSettings(); showToast("Đã lưu cài đặt BXH", "success"); }
+function saveAllowRegisterSetting() { appSettings.allowRegister = document.getElementById("settingAllowRegister").checked; saveAppSettings(); showToast("Đã lưu cài đặt đăng ký", "success"); }
+
+function openRankingModal() { document.getElementById('rankingModal').classList.remove('hidden'); renderRanking(); }
+function switchRankTab(t) {
+  currentRankTab = t;
+  document.getElementById('rankTabPlayers').className = t === 'players' ? "pb-1.5 text-amber-300 border-b-2 border-amber-400 font-bold" : "pb-1.5 text-slate-400 hover:text-white";
+  document.getElementById('rankTabChars').className = t === 'chars' ? "pb-1.5 text-amber-300 border-b-2 border-amber-400 font-bold" : "pb-1.5 text-slate-400 hover:text-white";
+  document.getElementById('rankTabDaily').className = t === 'daily' ? "pb-1.5 text-amber-300 border-b-2 border-amber-400 font-bold" : "pb-1.5 text-slate-400 hover:text-white";
+  renderRanking();
+}
+function renderRanking() {
+  const container = document.getElementById('rankContent');
+  if (currentRankTab === 'daily') {
+    const dk = todayKey(); const today = dailyStats[dk] || {}; const userMap = {};
+    Object.values(today).forEach(s => { if (!s.username) return; if (!userMap[s.username]) userMap[s.username] = { username: s.username, kisses: 0, likes: 0, comments: 0, plays: 0, score: 0 }; userMap[s.username].kisses += s.kisses || 0; userMap[s.username].likes += s.likes || 0; userMap[s.username].comments += s.comments || 0; userMap[s.username].plays += s.plays || 0; userMap[s.username].score += (s.kisses || 0) * 3 + (s.likes || 0) * 2 + (s.comments || 0) * 2 + (s.plays || 0) * 5; });
+    const arr = Object.values(userMap).sort((a, b) => b.score - a.score).slice(0, 20);
+    if (arr.length === 0) { container.innerHTML = `<p class="text-center text-slate-500 text-xs py-8">Chưa có hoạt động hôm nay.</p>`; return; }
+    container.innerHTML = arr.map((u, i) => rankRowHTML(u, i, false)).join(''); return;
+  }
+  if (currentRankTab === 'players') {
+    const userMap = {};
+    Object.keys(userStats).forEach(key => {
+      const parts = key.split('_'); if (parts.length < 2) return;
+      const uname = parts[0]; const stats = userStats[key];
+      if (!userMap[uname]) userMap[uname] = { username: uname, kisses: 0, likes: 0, comments: 0, plays: 0, score: 0 };
+      userMap[uname].kisses += stats.kisses || 0; userMap[uname].likes += stats.likes || 0; userMap[uname].comments += stats.comments || 0; userMap[uname].plays += stats.plays || 0;
+      userMap[uname].score += (stats.kisses || 0) * 3 + (stats.likes || 0) * 2 + (stats.comments || 0) * 2 + (stats.plays || 0) * 5;
+    });
+    const arr = Object.values(userMap).sort((a, b) => b.score - a.score).slice(0, 20);
+    if (arr.length === 0) { container.innerHTML = `<p class="text-center text-slate-500 text-xs py-8">Chưa có dữ liệu.</p>`; return; }
+    container.innerHTML = arr.map((u, i) => rankRowHTML(u, i, false)).join("");
+  } else {
+    const arr = [...characterList].sort((a, b) => (b.kisses || 0) + (b.likes || 0) * 2 - ((a.kisses || 0) + (a.likes || 0) * 2)).slice(0, 20);
+    if (arr.length === 0) { container.innerHTML = `<p class="text-center text-slate-500 text-xs py-8">Chưa có dữ liệu.</p>`; return; }
+    container.innerHTML = arr.map((c, i) => rankRowHTML(c, i, true)).join("");
+  }
+}
+function rankRowHTML(item, i, isChar) {
+  const medalClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+  const medalText = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+  if (isChar) return `<div class="rank-card"><div class="rank-medal ${medalClass}">${medalText}</div><img src="${escapeHtml(item.gallery[0] || '')}" onerror="this.src='https://placehold.co/50x50/120d22/b57edc?text=C'" class="w-10 h-10 rounded-xl object-contain bg-black/50 border border-night-border"><div class="flex-1 min-w-0"><p class="font-bold text-white text-sm truncate">${escapeHtml(item.name)}</p><p class="text-[10px] text-slate-400">💋 ${item.kisses || 0} • 💖 ${item.likes || 0} • 👁 ${item.views || 0}</p></div></div>`;
+  return `<div class="rank-card"><div class="rank-medal ${medalClass}">${medalText}</div><div class="flex-1 min-w-0"><p class="font-bold text-white text-sm truncate">${escapeHtml(item.username)}</p><p class="text-[10px] text-slate-400">💋 ${item.kisses} • 💖 ${item.likes} • 💬 ${item.comments} • 🎮 ${item.plays}</p></div><div class="text-amber-300 font-extrabold text-sm">${item.score}</div></div>`;
+}
+function showDailyRankPopup() {
+  if (!appSettings.dailyRankPopup) return;
+  const dk = todayKey(); const today = dailyStats[dk] || {}; const userMap = {};
+  Object.values(today).forEach(s => { if (!s.username) return; if (!userMap[s.username]) userMap[s.username] = { username: s.username, kisses: 0, likes: 0, comments: 0, plays: 0, score: 0 }; userMap[s.username].kisses += s.kisses || 0; userMap[s.username].likes += s.likes || 0; userMap[s.username].comments += s.comments || 0; userMap[s.username].plays += s.plays || 0; userMap[s.username].score += (s.kisses || 0) * 3 + (s.likes || 0) * 2 + (s.comments || 0) * 2 + (s.plays || 0) * 5; });
+  const arr = Object.values(userMap).sort((a, b) => b.score - a.score).slice(0, 3);
+  const d = new Date();
+  document.getElementById('dailyRankDate').innerText = `Ngày ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+  const content = document.getElementById('dailyRankContent');
+  if (arr.length === 0) { content.innerHTML = `<p class="text-center text-slate-400 text-xs py-6">🌟 Hôm nay chưa có ai hoạt động. Hãy là người đầu tiên!</p>`; }
+  else { content.innerHTML = arr.map((u, i) => { const medalClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : 'rank-3'; const medalText = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'; return `<div class="rank-card"><div class="rank-medal ${medalClass}">${medalText}</div><div class="flex-1 min-w-0"><p class="font-bold text-white text-sm truncate">${escapeHtml(u.username)}</p><p class="text-[10px] text-slate-400">💋 ${u.kisses} • 💖 ${u.likes} • 💬 ${u.comments} • 🎮 ${u.plays}</p></div><div class="text-amber-300 font-extrabold text-sm">${u.score}</div></div>`; }).join(''); }
+  document.getElementById('dailyRankModal').classList.remove('hidden');
+}
+
+window.addEventListener('click', function initAudioOnce() { const audio = document.getElementById("htmlAudioPlayer"); if (audio && !audio.src) audio.src = musicPlaylist[currentSongIndex]?.url || "https://files.catbox.moe/io1op0.mp3"; window.removeEventListener('click', initAudioOnce); }, { once: true });
+
+['announcementModal', 'guideModal', 'plotModal', 'mailboxModal', 'loginModal', 'adminModal', 'commentsModal', 'rankingModal', 'dailyRankModal'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('click', (e) => { if (e.target === el) closeModal(id); });
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    ['announcementModal', 'guideModal', 'plotModal', 'mailboxModal', 'loginModal', 'adminModal', 'commentsModal', 'rankingModal', 'ageConfirmModal', 'dailyRankModal'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el.classList.contains('hidden')) closeModal(id);
+    });
+  }
+});
+
+renderPresetTagButtons();
+renderDialogueRows();
+checkUserAuth();
+showWelcomeNotice();
+updateMusicDisplay();
+initCloud();
+</script>
+</body>
+</html>
